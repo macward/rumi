@@ -170,9 +170,31 @@ class SessionManager:
         })
         session.touch()
 
-    def get_messages(self, chat_id: str) -> list[dict[str, Any]]:
-        """Get message history for a session."""
-        return self.get_session(chat_id).messages
+    def get_messages(
+        self,
+        chat_id: str,
+        limit: int = 20,
+        for_llm: bool = False,
+    ) -> list[dict[str, Any]]:
+        """Get message history for a session.
+
+        Args:
+            chat_id: The session identifier.
+            limit: Maximum number of messages to return (most recent).
+            for_llm: If True, return only role and content (Groq API format).
+
+        Returns:
+            List of message dictionaries.
+        """
+        if limit <= 0:
+            return []
+
+        messages = self.get_session(chat_id).messages[-limit:]
+
+        if for_llm:
+            return [{"role": m["role"], "content": m["content"]} for m in messages]
+
+        return messages
 
     def set_context(self, chat_id: str, key: str, value: Any) -> None:
         """Set a context value for the session."""

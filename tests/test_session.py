@@ -81,6 +81,62 @@ class TestSessionManager:
         assert session_manager.get_context("chat", "key") == "value"
         assert session_manager.get_context("chat", "missing", "default") == "default"
 
+    def test_get_messages_limit(self, session_manager: SessionManager):
+        # Add 10 messages
+        for i in range(10):
+            session_manager.add_message("chat", "user", f"msg-{i}")
+
+        # Get last 5
+        messages = session_manager.get_messages("chat", limit=5)
+        assert len(messages) == 5
+        assert messages[0]["content"] == "msg-5"
+        assert messages[4]["content"] == "msg-9"
+
+    def test_get_messages_for_llm(self, session_manager: SessionManager):
+        session_manager.add_message("chat", "user", "hello")
+        session_manager.add_message("chat", "assistant", "hi!")
+
+        # With for_llm=True, should exclude timestamp
+        messages = session_manager.get_messages("chat", for_llm=True)
+        assert len(messages) == 2
+        assert messages[0] == {"role": "user", "content": "hello"}
+        assert messages[1] == {"role": "assistant", "content": "hi!"}
+        assert "timestamp" not in messages[0]
+
+    def test_get_messages_limit_and_for_llm(self, session_manager: SessionManager):
+        # Add 10 messages
+        for i in range(10):
+            session_manager.add_message("chat", "user", f"msg-{i}")
+
+        # Get last 3 in LLM format
+        messages = session_manager.get_messages("chat", limit=3, for_llm=True)
+        assert len(messages) == 3
+        assert messages[0] == {"role": "user", "content": "msg-7"}
+        assert "timestamp" not in messages[0]
+
+    def test_get_messages_limit_zero_returns_empty(self, session_manager: SessionManager):
+        session_manager.add_message("chat", "user", "hello")
+        messages = session_manager.get_messages("chat", limit=0)
+        assert messages == []
+
+    def test_get_messages_limit_negative_returns_empty(self, session_manager: SessionManager):
+        session_manager.add_message("chat", "user", "hello")
+        messages = session_manager.get_messages("chat", limit=-5)
+        assert messages == []
+
+    def test_get_messages_limit_exceeds_count(self, session_manager: SessionManager):
+        # Add only 3 messages
+        for i in range(3):
+            session_manager.add_message("chat", "user", f"msg-{i}")
+
+        # Request 100, should get all 3
+        messages = session_manager.get_messages("chat", limit=100)
+        assert len(messages) == 3
+
+    def test_get_messages_empty_history(self, session_manager: SessionManager):
+        messages = session_manager.get_messages("chat")
+        assert messages == []
+
 
 @pytest.mark.asyncio
 class TestConcurrency:
