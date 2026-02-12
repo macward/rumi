@@ -8,13 +8,13 @@ from ..sandbox import SandboxManager
 from .base import Tool, ToolResult
 
 
-# Commands allowed to execute
+# Commands allowed to execute (verified to exist in miniclaw-runner image)
 ALLOWED_COMMANDS = frozenset({
     # File operations
     "ls", "cat", "head", "tail", "less", "more",
     "cp", "mv", "rm", "mkdir", "rmdir", "touch",
-    "find", "locate", "which", "whereis",
-    "file", "stat", "du", "df",
+    "find", "which",  # locate/whereis not installed
+    "stat", "du", "df",  # file not installed
     # Text processing
     "grep", "egrep", "fgrep", "sed", "awk", "gawk",
     "cut", "sort", "uniq", "wc", "tr", "tee",
@@ -22,15 +22,15 @@ ALLOWED_COMMANDS = frozenset({
     # File content
     "echo", "printf", "yes",
     "base64", "md5sum", "sha256sum",
-    # Directory navigation
-    "pwd", "cd", "basename", "dirname", "realpath",
+    # Directory navigation (cd is builtin, use sh -c if needed)
+    "pwd", "basename", "dirname", "realpath",
     # Utilities
     "date", "cal", "expr", "seq", "sleep",
     "true", "false", "test", "[",
     "env", "printenv", "id", "whoami",
-    # Compression (read-only operations)
+    # Compression
     "tar", "gzip", "gunzip", "zcat",
-    # Shell builtins we allow via sh -c
+    # Shell (for sh -c 'command')
     "sh",
 })
 

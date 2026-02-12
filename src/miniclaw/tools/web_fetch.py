@@ -10,6 +10,12 @@ import httpx
 from .base import Tool, ToolResult
 
 
+class SSRFBlockedError(Exception):
+    """Raised when a request would go to a private/blocked IP."""
+
+    pass
+
+
 # Private/reserved IP ranges to block
 BLOCKED_NETWORKS = [
     ipaddress.ip_network("127.0.0.0/8"),      # Loopback
@@ -65,6 +71,51 @@ def resolve_and_validate(hostname: str) -> tuple[bool, str | None, str | None]:
         return False, None, f"DNS resolution failed: {e}"
 
 
+def validate_url_for_ssrf(url: str) -> tuple[bool, str | None]:
+    """Validate a URL is safe (public IP, allowed scheme).
+
+    Returns (valid, error_message).
+    """
+    try:
+        parsed = urlparse(url)
+    except Exception as e:
+        return False, f"Invalid URL: {e}"
+
+    # Check scheme
+    if parsed.scheme.lower() not in ALLOWED_SCHEMES:
+        return False, f"Scheme not allowed: {parsed.scheme}"
+
+    # Check hostname exists
+    if not parsed.hostname:
+        return False, "URL must have a hostname"
+
+    # Resolve and validate IP
+    valid, ip, error = resolve_and_validate(parsed.hostname)
+    if not valid:
+        return False, error
+
+    return True, None
+
+
+async def check_redirect_ssrf(response: httpx.Response) -> None:
+    """Event hook to validate redirect URLs for SSRF.
+
+    Raises SSRFBlockedError if redirect would go to private IP.
+    """
+    if response.is_redirect and "location" in response.headers:
+        location = response.headers["location"]
+
+        # Handle relative URLs
+        if location.startswith("/"):
+            # Same host, already validated
+            return
+
+        # Validate the redirect URL
+        valid, error = validate_url_for_ssrf(location)
+        if not valid:
+            raise SSRFBlockedError(f"Redirect blocked: {error}")
+
+
 class WebFetchTool(Tool):
     """Tool for fetching web content with SSRF protection."""
 
@@ -110,25 +161,7 @@ class WebFetchTool(Tool):
 
     def _validate_url(self, url: str) -> tuple[bool, str | None]:
         """Validate URL scheme and host."""
-        try:
-            parsed = urlparse(url)
-        except Exception as e:
-            return False, f"Invalid URL: {e}"
-
-        # Check scheme
-        if parsed.scheme.lower() not in ALLOWED_SCHEMES:
-            return False, f"Scheme not allowed: {parsed.scheme}. Use http or https."
-
-        # Check hostname exists
-        if not parsed.hostname:
-            return False, "URL must have a hostname"
-
-        # Resolve and validate IP
-        valid, ip, error = resolve_and_validate(parsed.hostname)
-        if not valid:
-            return False, error
-
-        return True, None
+        return validate_url_for_ssrf(url)
 
     async def execute(self, url: str, method: str = "GET", **kwargs: Any) -> ToolResult:
         """Fetch content from URL."""
@@ -143,15 +176,15 @@ class WebFetchTool(Tool):
             return ToolResult(success=False, output="", error=f"Invalid method: {method}")
 
         try:
+            # Use event hook to validate redirects for SSRF
+            event_hooks = {"response": [check_redirect_ssrf]}
+
             async with httpx.AsyncClient(
                 timeout=self._timeout,
                 follow_redirects=True,
                 max_redirects=self._max_redirects,
+                event_hooks=event_hooks,
             ) as client:
-                # For each redirect, we need to validate the new host
-                # httpx handles redirects, but we validate before the first request
-                # To properly validate redirects, we'd need a custom transport
-
                 if method == "HEAD":
                     response = await client.head(url)
                     body = ""
@@ -184,6 +217,12 @@ class WebFetchTool(Tool):
                     },
                 )
 
+        except SSRFBlockedError as e:
+            return ToolResult(
+                success=False,
+                output="",
+                error=str(e),
+            )
         except httpx.TimeoutException:
             return ToolResult(
                 success=False,

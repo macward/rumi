@@ -24,6 +24,22 @@ from ..tools import BashTool, ToolRegistry, WebFetchTool
 
 logger = logging.getLogger(__name__)
 
+
+def _config_from_env() -> tuple[AgentConfig, SandboxConfig]:
+    """Load configuration from environment variables."""
+    agent_config = AgentConfig(
+        model=os.getenv("GROQ_MODEL", "llama-3.1-70b-versatile"),
+    )
+
+    sandbox_config = SandboxConfig(
+        timeout=int(os.getenv("SANDBOX_TIMEOUT", "30")),
+        memory_limit=os.getenv("SANDBOX_MEMORY", "512m"),
+        cpu_limit=float(os.getenv("SANDBOX_CPUS", "1")),
+    )
+
+    return agent_config, sandbox_config
+
+
 WELCOME_MESSAGE = """
 🦀 *MiniClaw*
 
@@ -88,7 +104,13 @@ class TelegramBot:
         if not self.token:
             raise ValueError("TELEGRAM_TOKEN not set")
 
-        self.agent_config = agent_config or AgentConfig()
+        # Load config from env if not provided
+        if agent_config is None or sandbox_config is None:
+            env_agent, env_sandbox = _config_from_env()
+            agent_config = agent_config or env_agent
+            sandbox_config = sandbox_config or env_sandbox
+
+        self.agent_config = agent_config
         self.sandbox = SandboxManager(sandbox_config)
         self.sessions = SessionManager(session_config, sandbox=self.sandbox)
 
@@ -246,6 +268,11 @@ class TelegramBot:
 
     def run(self) -> None:
         """Run the bot (blocking)."""
+        # Cleanup stale containers on startup
+        stale_count = self.sandbox.cleanup_all()
+        if stale_count > 0:
+            logger.info(f"Cleaned up {stale_count} stale container(s)")
+
         app = self.build_app()
         self.sessions.start_cleanup_task()
 

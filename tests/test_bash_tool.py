@@ -75,6 +75,12 @@ class TestAllowlist:
         for cmd in dangerous:
             assert cmd not in ALLOWED_COMMANDS, f"{cmd} should NOT be allowed"
 
+    def test_unavailable_commands_not_allowed(self) -> None:
+        """Commands not installed in Docker image should not be in allowlist."""
+        unavailable = ["locate", "whereis", "file", "cd"]
+        for cmd in unavailable:
+            assert cmd not in ALLOWED_COMMANDS, f"{cmd} should NOT be in allowlist (not in image)"
+
 
 @pytest.mark.asyncio
 class TestExecution:

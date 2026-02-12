@@ -4,9 +4,12 @@ import pytest
 
 from miniclaw.tools.web_fetch import (
     BLOCKED_NETWORKS,
+    SSRFBlockedError,
     WebFetchTool,
+    check_redirect_ssrf,
     is_private_ip,
     resolve_and_validate,
+    validate_url_for_ssrf,
 )
 
 
@@ -135,3 +138,57 @@ class TestExecution:
 
         assert result.success is True
         assert "truncated" in result.output.lower()
+
+
+class TestRedirectSSRF:
+    """Test redirect SSRF protection."""
+
+    def test_validate_url_public(self):
+        valid, error = validate_url_for_ssrf("https://httpbin.org/get")
+        assert valid is True
+
+    def test_validate_url_private(self):
+        valid, error = validate_url_for_ssrf("http://192.168.1.1/admin")
+        assert valid is False
+        assert "private" in error.lower() or "blocked" in error.lower()
+
+    def test_validate_url_localhost(self):
+        valid, error = validate_url_for_ssrf("http://localhost/admin")
+        assert valid is False
+
+    @pytest.mark.asyncio
+    async def test_redirect_hook_blocks_private(self):
+        """Test that redirect hook blocks redirects to private IPs."""
+        from unittest.mock import MagicMock
+
+        # Mock a redirect response to localhost
+        response = MagicMock()
+        response.is_redirect = True
+        response.headers = {"location": "http://127.0.0.1/evil"}
+
+        with pytest.raises(SSRFBlockedError):
+            await check_redirect_ssrf(response)
+
+    @pytest.mark.asyncio
+    async def test_redirect_hook_allows_public(self):
+        """Test that redirect hook allows redirects to public IPs."""
+        from unittest.mock import MagicMock
+
+        response = MagicMock()
+        response.is_redirect = True
+        response.headers = {"location": "https://httpbin.org/get"}
+
+        # Should not raise
+        await check_redirect_ssrf(response)
+
+    @pytest.mark.asyncio
+    async def test_redirect_hook_allows_relative(self):
+        """Test that redirect hook allows relative URLs."""
+        from unittest.mock import MagicMock
+
+        response = MagicMock()
+        response.is_redirect = True
+        response.headers = {"location": "/other-path"}
+
+        # Should not raise (relative URLs stay on same host)
+        await check_redirect_ssrf(response)
