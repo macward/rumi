@@ -146,21 +146,30 @@ El workspace (`/workspace`) es el único directorio escribible y persiste durant
 
 #### bash
 
-Ejecuta comandos en el contenedor. Comandos permitidos:
+Ejecuta comandos en el contenedor. Comandos permitidos (verificados en imagen Docker):
 
 ```
-ls, cat, head, tail, cp, mv, rm, mkdir, rmdir, touch, find, grep, sed, awk,
-cut, sort, uniq, wc, echo, pwd, date, tar, gzip, base64, md5sum, sha256sum...
+ls, cat, head, tail, less, more, cp, mv, rm, mkdir, rmdir, touch, find, which,
+stat, du, df, grep, egrep, fgrep, sed, awk, gawk, cut, sort, uniq, wc, tr, tee,
+diff, comm, join, paste, echo, printf, yes, base64, md5sum, sha256sum, pwd,
+basename, dirname, realpath, date, cal, expr, seq, sleep, true, false, test,
+env, printenv, id, whoami, tar, gzip, gunzip, zcat, sh
 ```
 
-**No permitido**: pipes (`|`), redirecciones (`>`), encadenamiento (`&&`, `;`), curl, wget, python, etc.
+**No permitido**:
+- Pipes (`|`), redirecciones (`>`), encadenamiento (`&&`, `;`)
+- Sustitución de comandos (`$(...)`, backticks)
+- curl, wget, nc, python, ruby, perl, php
+- `cd` (es builtin, usar `sh -c 'cd dir && ...'` si necesario)
 
 #### web_fetch
 
-Obtiene contenido de URLs públicas. Protecciones:
+Obtiene contenido de URLs públicas. Protecciones SSRF:
 
-- Solo HTTP/HTTPS
-- Bloquea IPs privadas (127.0.0.0/8, 10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16)
+- Solo HTTP/HTTPS (bloquea file://, ftp://, etc.)
+- Resuelve DNS y valida IP antes de conectar
+- Bloquea IPs privadas (127.0.0.0/8, 10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16, 169.254.0.0/16)
+- **Valida cada redirect** para prevenir bypass SSRF
 - Límite de bytes (1MB)
 - Timeout configurable
 
@@ -216,6 +225,13 @@ MiniClaw crea los siguientes directorios en `~/.miniclaw/`:
 ├── sessions/{chat_id}.json  # Estado persistido de sesiones
 └── logs/logs.jsonl       # Logs estructurados
 ```
+
+### Ciclo de Vida de Contenedores
+
+- **Startup**: Limpia contenedores huérfanos (`miniclaw-runner-*`)
+- **Por sesión**: Un contenedor por `chat_id`, creado on-demand
+- **Reset/Exit**: Destruye el contenedor de la sesión
+- **TTL**: Sesiones expiran después de 1 hora de inactividad (configurable)
 
 ### Circuit Breakers
 
