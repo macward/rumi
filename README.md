@@ -1,0 +1,348 @@
+# MiniClaw
+
+Asistente personal de servidor con fines educativos que ejecuta herramientas reales de forma segura mediante Docker sandboxing.
+
+## Características
+
+- **Agente IA**: Ciclo think → act → observe con Groq API (Llama 3.1)
+- **Docker Sandbox**: Contenedores aislados sin red, read-only, recursos limitados
+- **Herramientas seguras**: bash (allowlist), web_fetch (SSRF protection)
+- **Interfaces**: CLI interactivo y bot de Telegram
+- **Observabilidad**: Logs JSONL estructurados
+- **Sesiones**: Persistencia, locks de concurrencia, TTL configurable
+
+## Requisitos
+
+- Python 3.11+
+- Docker Desktop o Docker Engine
+- Cuenta en [Groq](https://console.groq.com/) (API key gratuita)
+- (Opcional) Bot de Telegram para usar la interfaz de Telegram
+
+## Instalación
+
+### 1. Clonar el repositorio
+
+```bash
+git clone https://github.com/tu-usuario/mini-claw.git
+cd mini-claw
+```
+
+### 2. Crear entorno virtual
+
+```bash
+python -m venv .venv
+source .venv/bin/activate  # Linux/macOS
+# o en Windows: .venv\Scripts\activate
+```
+
+### 3. Instalar dependencias
+
+```bash
+pip install -e ".[dev]"
+```
+
+### 4. Construir imagen Docker
+
+```bash
+docker build -t miniclaw-runner:latest -f docker/Dockerfile.runner .
+```
+
+### 5. Configurar variables de entorno
+
+```bash
+cp .env.example .env
+```
+
+Edita `.env` con tus credenciales:
+
+```env
+# Requerido
+GROQ_API_KEY=tu_api_key_de_groq
+
+# Opcional (solo para Telegram)
+TELEGRAM_TOKEN=tu_token_de_telegram
+
+# Opcional: Configuración
+GROQ_MODEL=llama-3.1-70b-versatile
+SANDBOX_TIMEOUT=30
+SANDBOX_MEMORY=512m
+```
+
+## Uso
+
+### CLI Interactivo
+
+```bash
+miniclaw
+```
+
+```
+╔══════════════════════════════════════════╗
+║           🦀 MiniClaw v0.1.0             ║
+║    Educational Sandbox Assistant         ║
+╚══════════════════════════════════════════╝
+
+Commands:
+  /exit, /quit  - Exit the CLI
+  /reset        - Reset session (new chat_id)
+  /help         - Show this help
+
+you> lista los archivos en /workspace
+```
+
+### Bot de Telegram
+
+1. Crea un bot con [@BotFather](https://t.me/BotFather)
+2. Copia el token a tu `.env`
+3. Ejecuta:
+
+```bash
+miniclaw bot
+```
+
+Comandos disponibles en Telegram:
+- `/start` - Mensaje de bienvenida
+- `/reset` - Reiniciar sesión (limpia contenedor e historial)
+- `/stop` - Cancelar operación en curso
+
+## Arquitectura
+
+```
+Input (CLI/Telegram) → Agent Loop → ToolRegistry → SandboxManager → Docker
+                          ↓
+                     LLM (Groq API)
+```
+
+### Componentes
+
+| Componente | Descripción |
+|------------|-------------|
+| `AgentLoop` | Ciclo think→act→observe con circuit breakers |
+| `ToolRegistry` | Registro y dispatch de herramientas |
+| `SandboxManager` | Gestión de contenedores Docker |
+| `SessionManager` | Estado, locks y persistencia por sesión |
+| `BashTool` | Ejecución segura de comandos bash |
+| `WebFetchTool` | Fetch HTTP con protección SSRF |
+| `JSONLLogger` | Logs estructurados para observabilidad |
+
+### Seguridad del Sandbox
+
+Cada contenedor se ejecuta con:
+
+```
+--read-only              # Sistema de archivos read-only
+--cap-drop=ALL           # Sin capabilities
+--security-opt=no-new-privileges
+--pids-limit=128         # Límite de procesos
+--cpus=1                 # 1 CPU
+--memory=512m            # 512MB RAM
+--network=none           # Sin red
+--user=1000:1000         # Usuario no-root
+```
+
+El workspace (`/workspace`) es el único directorio escribible y persiste durante la sesión.
+
+### Herramientas Disponibles
+
+#### bash
+
+Ejecuta comandos en el contenedor. Comandos permitidos:
+
+```
+ls, cat, head, tail, cp, mv, rm, mkdir, rmdir, touch, find, grep, sed, awk,
+cut, sort, uniq, wc, echo, pwd, date, tar, gzip, base64, md5sum, sha256sum...
+```
+
+**No permitido**: pipes (`|`), redirecciones (`>`), encadenamiento (`&&`, `;`), curl, wget, python, etc.
+
+#### web_fetch
+
+Obtiene contenido de URLs públicas. Protecciones:
+
+- Solo HTTP/HTTPS
+- Bloquea IPs privadas (127.0.0.0/8, 10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16)
+- Límite de bytes (1MB)
+- Timeout configurable
+
+## Estructura del Proyecto
+
+```
+mini-claw/
+├── src/miniclaw/
+│   ├── agent/           # AgentLoop, PromptBuilder
+│   │   ├── loop.py      # Ciclo principal del agente
+│   │   └── prompt.py    # Construcción de prompts
+│   ├── tools/           # Herramientas
+│   │   ├── base.py      # Interfaz Tool, ToolResult
+│   │   ├── registry.py  # ToolRegistry
+│   │   ├── bash.py      # BashTool
+│   │   └── web_fetch.py # WebFetchTool
+│   ├── sandbox/         # Docker sandbox
+│   │   └── manager.py   # SandboxManager
+│   ├── session/         # Gestión de sesiones
+│   │   └── manager.py   # SessionManager
+│   ├── telegram/        # Bot de Telegram
+│   │   └── bot.py       # TelegramBot
+│   ├── cli.py           # CLI interactivo
+│   ├── logging.py       # JSONL logging
+│   └── main.py          # Entry point
+├── docker/
+│   └── Dockerfile.runner  # Imagen del sandbox
+├── tests/               # Tests
+├── pyproject.toml       # Dependencias
+└── .env.example         # Template de configuración
+```
+
+## Configuración Avanzada
+
+### Variables de Entorno
+
+| Variable | Default | Descripción |
+|----------|---------|-------------|
+| `GROQ_API_KEY` | (requerido) | API key de Groq |
+| `TELEGRAM_TOKEN` | (opcional) | Token del bot de Telegram |
+| `GROQ_MODEL` | `llama-3.1-70b-versatile` | Modelo a usar |
+| `SANDBOX_TIMEOUT` | `30` | Timeout de comandos (segundos) |
+| `SANDBOX_MEMORY` | `512m` | Límite de memoria del contenedor |
+| `SANDBOX_CPUS` | `1` | Límite de CPUs |
+
+### Directorios
+
+MiniClaw crea los siguientes directorios en `~/.miniclaw/`:
+
+```
+~/.miniclaw/
+├── workspace/{chat_id}/  # Workspace por sesión (montado en /workspace)
+├── sessions/{chat_id}.json  # Estado persistido de sesiones
+└── logs/logs.jsonl       # Logs estructurados
+```
+
+### Circuit Breakers
+
+El agente se detiene automáticamente si:
+
+- Mismo tool_call repetido 2 veces consecutivas
+- 3 errores consecutivos
+- Alcanza max_turns (default: 10)
+
+## Desarrollo
+
+### Ejecutar Tests
+
+```bash
+# Todos los tests
+pytest
+
+# Con coverage
+pytest --cov=miniclaw
+
+# Tests específicos
+pytest tests/test_sandbox.py -v
+```
+
+### Linting
+
+```bash
+ruff check src/
+ruff format src/
+```
+
+### Agregar una Nueva Herramienta
+
+1. Crea una clase que implemente `Tool`:
+
+```python
+from miniclaw.tools import Tool, ToolResult
+
+class MyTool(Tool):
+    @property
+    def name(self) -> str:
+        return "my_tool"
+
+    @property
+    def description(self) -> str:
+        return "Descripción para el LLM"
+
+    @property
+    def parameters(self) -> dict:
+        return {
+            "type": "object",
+            "properties": {
+                "param1": {"type": "string", "description": "..."},
+            },
+            "required": ["param1"],
+        }
+
+    async def execute(self, param1: str, **kwargs) -> ToolResult:
+        # Implementación
+        return ToolResult(success=True, output="resultado")
+```
+
+2. Regístrala en el `ToolRegistry`:
+
+```python
+registry.register(MyTool())
+```
+
+## Logs
+
+Los logs se escriben en formato JSONL en `~/.miniclaw/logs/logs.jsonl`:
+
+```json
+{"timestamp": "2024-01-15T10:30:00Z", "event": "command", "chat_id": "cli-abc123", "argv": ["ls", "-la"], "exit_code": 0, "duration_ms": 45.2}
+{"timestamp": "2024-01-15T10:30:01Z", "event": "agent_stop", "chat_id": "cli-abc123", "stopped_reason": "complete", "turns": 2}
+```
+
+Campos comunes:
+- `timestamp`: ISO 8601
+- `event`: tipo de evento
+- `chat_id`: identificador de sesión
+- `duration_ms`: duración en milisegundos
+- `exit_code`: código de salida (para comandos)
+- `stopped_reason`: razón de parada del agente
+
+## Troubleshooting
+
+### "GROQ_API_KEY not set"
+
+Asegúrate de tener el archivo `.env` con tu API key o exporta la variable:
+
+```bash
+export GROQ_API_KEY=tu_api_key
+```
+
+### "Cannot connect to Docker"
+
+Verifica que Docker esté corriendo:
+
+```bash
+docker ps
+```
+
+### "Image not found: miniclaw-runner"
+
+Construye la imagen:
+
+```bash
+docker build -t miniclaw-runner:latest -f docker/Dockerfile.runner .
+```
+
+### Contenedores huérfanos
+
+Limpia contenedores de MiniClaw:
+
+```bash
+docker rm -f $(docker ps -aq --filter "name=miniclaw-runner-")
+```
+
+## Licencia
+
+MIT
+
+## Contribuir
+
+1. Fork el repositorio
+2. Crea una rama (`git checkout -b feature/mi-feature`)
+3. Commit tus cambios (`git commit -am 'Add mi feature'`)
+4. Push a la rama (`git push origin feature/mi-feature`)
+5. Abre un Pull Request
