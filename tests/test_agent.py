@@ -167,3 +167,57 @@ async def test_repeated_calls(registry: ToolRegistry, mock_client: AsyncMock) ->
     result = await agent.run("Repeat")
 
     assert result.stop_reason == StopReason.REPEATED_CALL
+
+
+@pytest.mark.asyncio
+async def test_run_with_history(registry: ToolRegistry, mock_client: AsyncMock) -> None:
+    """Test agent includes history in messages."""
+    mock_client.chat.completions.create.return_value = make_mock_response(
+        content="Based on our conversation, yes!"
+    )
+
+    agent = AgentLoop(registry, groq_client=mock_client)
+    history = [
+        {"role": "user", "content": "My name is Alice"},
+        {"role": "assistant", "content": "Nice to meet you, Alice!"},
+        {"role": "user", "content": "What's 2+2?"},
+        {"role": "assistant", "content": "4"},
+    ]
+    result = await agent.run("Do you remember my name?", history=history)
+
+    # Verify history was passed to the LLM
+    call_args = mock_client.chat.completions.create.call_args
+    messages = call_args.kwargs["messages"]
+
+    # Should be: system + 4 history messages + current user message
+    assert len(messages) == 6
+    assert messages[0]["role"] == "system"
+    assert messages[1]["role"] == "user"
+    assert messages[1]["content"] == "My name is Alice"
+    assert messages[4]["content"] == "4"
+    assert messages[5]["role"] == "user"
+    assert messages[5]["content"] == "Do you remember my name?"
+
+    assert result.response == "Based on our conversation, yes!"
+
+
+@pytest.mark.asyncio
+async def test_run_without_history(registry: ToolRegistry, mock_client: AsyncMock) -> None:
+    """Test agent works normally without history (backwards compatible)."""
+    mock_client.chat.completions.create.return_value = make_mock_response(
+        content="Hello!"
+    )
+
+    agent = AgentLoop(registry, groq_client=mock_client)
+    result = await agent.run("Hi")
+
+    call_args = mock_client.chat.completions.create.call_args
+    messages = call_args.kwargs["messages"]
+
+    # Should be: system + user message only
+    assert len(messages) == 2
+    assert messages[0]["role"] == "system"
+    assert messages[1]["role"] == "user"
+    assert messages[1]["content"] == "Hi"
+
+    assert result.response == "Hello!"

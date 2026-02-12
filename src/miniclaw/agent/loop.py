@@ -73,14 +73,33 @@ class AgentLoop:
         self._repeated_count = 1
         return False
 
-    async def run(self, message: str, chat_id: str | None = None) -> AgentResult:
-        """Run the agent loop for a user message."""
+    async def run(
+        self,
+        message: str,
+        chat_id: str | None = None,
+        history: list[dict[str, Any]] | None = None,
+    ) -> AgentResult:
+        """Run the agent loop for a user message.
+
+        Args:
+            message: The current user message.
+            chat_id: Optional session identifier.
+            history: Optional conversation history to inject between
+                     system prompt and current message.
+
+        Returns:
+            AgentResult with response and metadata.
+        """
         self._reset_state()
 
         messages: list[dict[str, Any]] = [
             {"role": "system", "content": build_system_prompt(self.registry.get_tools_schema())},
-            {"role": "user", "content": message},
         ]
+
+        if history:
+            messages.extend(history)
+
+        messages.append({"role": "user", "content": message})
 
         tool_calls_log: list[dict[str, Any]] = []
         final_response = ""
