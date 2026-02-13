@@ -201,3 +201,21 @@ class AgentLoop:
             turns=self.config.max_turns,
             tool_calls=tool_calls_log,
         )
+
+    async def on_session_end(self, messages: list[dict[str, Any]]) -> list[Any]:
+        """Hook called when a session ends to extract and save facts.
+
+        This should be called when:
+        - CLI: user exits the REPL (Ctrl+C, 'exit', etc.)
+        - Telegram: /reset command or session timeout
+
+        Args:
+            messages: The conversation messages to analyze.
+
+        Returns:
+            List of extracted facts (empty if no memory manager or no facts).
+        """
+        if not self.memory:
+            return []
+
+        return await self.memory.extract_from_conversation(messages)

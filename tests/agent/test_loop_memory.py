@@ -6,7 +6,7 @@ from unittest.mock import AsyncMock, Mock, patch
 import pytest
 
 from miniclaw.agent.loop import AgentLoop, AgentConfig, AgentResult, StopReason
-from miniclaw.memory import Fact, MemoryManager, MemoryStore
+from miniclaw.memory import Fact, FactExtractor, MemoryManager, MemoryStore
 from miniclaw.tools import ToolRegistry
 
 
@@ -149,3 +149,78 @@ class TestAgentLoopMemoryInjection:
         system_prompt_2 = call_args.kwargs["messages"][0]["content"]
         assert "<memory>" in system_prompt_2
         assert "- nombre: Lucas" in system_prompt_2
+
+
+class TestAgentLoopSessionEnd:
+    """Tests for on_session_end hook."""
+
+    @pytest.mark.asyncio
+    async def test_no_memory_returns_empty(self, registry: ToolRegistry):
+        """Without memory manager, on_session_end returns empty list."""
+        mock_client = AsyncMock()
+        loop = AgentLoop(registry, groq_client=mock_client)
+
+        messages = [{"role": "user", "content": "Test"}]
+        result = await loop.on_session_end(messages)
+
+        assert result == []
+
+    @pytest.mark.asyncio
+    async def test_calls_memory_extraction(
+        self, registry: ToolRegistry, store: MemoryStore
+    ):
+        """on_session_end calls memory extraction."""
+        mock_extractor = AsyncMock(spec=FactExtractor)
+        mock_extractor.extract = AsyncMock(
+            return_value=[Fact(key="nombre", value="Lucas")]
+        )
+        memory_manager = MemoryManager(store, extractor=mock_extractor)
+
+        mock_client = AsyncMock()
+        loop = AgentLoop(registry, groq_client=mock_client, memory=memory_manager)
+
+        messages = [{"role": "user", "content": "Me llamo Lucas"}]
+        result = await loop.on_session_end(messages)
+
+        assert len(result) == 1
+        assert result[0].key == "nombre"
+        mock_extractor.extract.assert_called_once_with(messages)
+
+    @pytest.mark.asyncio
+    async def test_saves_extracted_facts(
+        self, registry: ToolRegistry, store: MemoryStore
+    ):
+        """on_session_end saves extracted facts to store."""
+        mock_extractor = AsyncMock(spec=FactExtractor)
+        mock_extractor.extract = AsyncMock(
+            return_value=[
+                Fact(key="nombre", value="Lucas"),
+                Fact(key="trabajo", value="developer"),
+            ]
+        )
+        memory_manager = MemoryManager(store, extractor=mock_extractor)
+
+        mock_client = AsyncMock()
+        loop = AgentLoop(registry, groq_client=mock_client, memory=memory_manager)
+
+        messages = [{"role": "user", "content": "Me llamo Lucas y soy developer"}]
+        await loop.on_session_end(messages)
+
+        # Verify facts saved
+        all_facts = store.get_all()
+        assert len(all_facts) == 2
+        keys = {f.key for f in all_facts}
+        assert keys == {"nombre", "trabajo"}
+
+    @pytest.mark.asyncio
+    async def test_no_extractor_returns_empty(
+        self, registry: ToolRegistry, memory_manager: MemoryManager
+    ):
+        """With memory but no extractor, returns empty list."""
+        mock_client = AsyncMock()
+        loop = AgentLoop(registry, groq_client=mock_client, memory=memory_manager)
+
+        messages = [{"role": "user", "content": "Test"}]
+        result = await loop.on_session_end(messages)
+
+        assert result == []

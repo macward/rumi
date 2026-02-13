@@ -1,11 +1,11 @@
 """Tests for MemoryManager."""
 
 from pathlib import Path
-from unittest.mock import Mock
+from unittest.mock import AsyncMock, Mock
 
 import pytest
 
-from miniclaw.memory import Fact, MemoryManager, MemoryStore
+from miniclaw.memory import Fact, FactExtractor, MemoryManager, MemoryStore
 
 
 @pytest.fixture
@@ -105,6 +105,63 @@ class TestMemoryManagerFormat:
 
         assert "mini-claw (agente con Docker)" in result
         assert "Python, TypeScript & React" in result
+
+
+class TestMemoryManagerExtraction:
+    """Tests for fact extraction."""
+
+    @pytest.mark.asyncio
+    async def test_no_extractor_returns_empty(self, manager: MemoryManager):
+        """Without extractor, extract_from_conversation returns empty."""
+        messages = [{"role": "user", "content": "Test"}]
+        facts = await manager.extract_from_conversation(messages)
+        assert facts == []
+
+    @pytest.mark.asyncio
+    async def test_extraction_calls_extractor(self, store: MemoryStore):
+        """Extractor is called with messages."""
+        mock_extractor = AsyncMock(spec=FactExtractor)
+        mock_extractor.extract = AsyncMock(return_value=[])
+
+        manager = MemoryManager(store, extractor=mock_extractor)
+        messages = [{"role": "user", "content": "Test"}]
+        await manager.extract_from_conversation(messages)
+
+        mock_extractor.extract.assert_called_once_with(messages)
+
+    @pytest.mark.asyncio
+    async def test_extracted_facts_are_saved(self, store: MemoryStore):
+        """Extracted facts are saved to store."""
+        extracted = [
+            Fact(key="nombre", value="Lucas"),
+            Fact(key="trabajo", value="developer"),
+        ]
+        mock_extractor = AsyncMock(spec=FactExtractor)
+        mock_extractor.extract = AsyncMock(return_value=extracted)
+
+        manager = MemoryManager(store, extractor=mock_extractor)
+        messages = [{"role": "user", "content": "Me llamo Lucas y soy developer"}]
+        result = await manager.extract_from_conversation(messages)
+
+        assert len(result) == 2
+        # Verify saved to store
+        all_facts = store.get_all()
+        assert len(all_facts) == 2
+        keys = {f.key for f in all_facts}
+        assert keys == {"nombre", "trabajo"}
+
+    @pytest.mark.asyncio
+    async def test_empty_extraction_not_saved(self, store: MemoryStore):
+        """Empty extraction doesn't call save."""
+        mock_extractor = AsyncMock(spec=FactExtractor)
+        mock_extractor.extract = AsyncMock(return_value=[])
+
+        manager = MemoryManager(store, extractor=mock_extractor)
+        messages = [{"role": "user", "content": "Hola"}]
+        result = await manager.extract_from_conversation(messages)
+
+        assert result == []
+        assert store.get_all() == []
 
 
 class TestMemoryManagerExport:
