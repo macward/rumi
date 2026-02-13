@@ -23,6 +23,7 @@ from .code_skill import (
     is_code_skill,
     load_code_skill,
 )
+from .llm_client import GroqLLMClient
 from .parser import (
     SkillParseError,
     SkillValidationError,
@@ -36,6 +37,7 @@ from .executor_tool import SkillExecutorTool
 __all__ = [
     "CodeSkill",
     "CodeSkillLoadError",
+    "GroqLLMClient",
     "LLMClient",
     "Skill",
     "SkillContext",
