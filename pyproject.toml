@@ -18,6 +18,9 @@ dev = [
     "pytest-asyncio>=0.23.0",
     "ruff>=0.2.0",
 ]
+search = [
+    "tavily-python>=0.5.0",
+]
 
 [project.scripts]
 miniclaw = "miniclaw.main:main"

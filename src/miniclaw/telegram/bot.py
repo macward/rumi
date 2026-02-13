@@ -22,7 +22,7 @@ from ..logging import get_logger
 from ..memory import FactExtractor, ForgetTool, MemoryManager, MemoryStore, RememberTool
 from ..sandbox import SandboxConfig, SandboxManager
 from ..session import SessionConfig, SessionManager
-from ..tools import BashTool, ToolRegistry, WebFetchTool
+from ..tools import BashTool, ToolRegistry, WebFetchTool, WebSearchTool
 
 MEMORY_DB_PATH = Path.home() / ".miniclaw" / "memory.db"
 
@@ -134,6 +134,12 @@ class TelegramBot:
         self.registry = ToolRegistry()
         self.registry.register(BashTool(self.sandbox))
         self.registry.register(WebFetchTool())
+        # Register web search if Tavily API key is available
+        if os.getenv("TAVILY_API_KEY"):
+            try:
+                self.registry.register(WebSearchTool())
+            except ImportError:
+                pass  # tavily-python not installed, skip
         # Register memory tools
         self.registry.register(RememberTool(self.memory_store))
         self.registry.register(ForgetTool(self.memory_store))

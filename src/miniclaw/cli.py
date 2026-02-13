@@ -12,7 +12,7 @@ from .logging import configure_logger, get_logger
 from .memory import FactExtractor, ForgetTool, MemoryManager, MemoryStore, RememberTool
 from .sandbox import SandboxConfig, SandboxManager
 from .session import SessionConfig, SessionManager
-from .tools import BashTool, ToolRegistry, WebFetchTool
+from .tools import BashTool, ToolRegistry, WebFetchTool, WebSearchTool
 
 MEMORY_DB_PATH = Path.home() / ".miniclaw" / "memory.db"
 
@@ -82,6 +82,12 @@ class CLI:
             registry = ToolRegistry()
             registry.register(BashTool(sandbox))
             registry.register(WebFetchTool())
+            # Register web search if Tavily API key is available
+            if os.getenv("TAVILY_API_KEY"):
+                try:
+                    registry.register(WebSearchTool())
+                except ImportError:
+                    pass  # tavily-python not installed, skip
             # Register memory tools
             registry.register(RememberTool(self.memory_store))
             registry.register(ForgetTool(self.memory_store))
