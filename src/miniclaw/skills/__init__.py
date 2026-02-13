@@ -6,15 +6,22 @@ strategies and workflows.
 
 Two types of skills:
 - PromptSkill: Loaded from SKILL.md files, inject instructions into conversation
-- CodeSkill: Python classes that orchestrate tools programmatically (Phase 2)
+- CodeSkill: Python classes that orchestrate tools programmatically
 """
 
 from .base import (
+    LLMClient,
     Skill,
     SkillContext,
     SkillMetadata,
     SkillResult,
     SkillSource,
+)
+from .code_skill import (
+    CodeSkill,
+    CodeSkillLoadError,
+    is_code_skill,
+    load_code_skill,
 )
 from .parser import (
     SkillParseError,
@@ -27,6 +34,9 @@ from .manager import SkillManager, SkillsConfig
 from .executor_tool import SkillExecutorTool
 
 __all__ = [
+    "CodeSkill",
+    "CodeSkillLoadError",
+    "LLMClient",
     "Skill",
     "SkillContext",
     "SkillMetadata",
@@ -34,6 +44,8 @@ __all__ = [
     "SkillSource",
     "SkillParseError",
     "SkillValidationError",
+    "is_code_skill",
+    "load_code_skill",
     "parse_skill_content",
     "parse_skill_file",
     "PromptSkill",

@@ -5,7 +5,7 @@ The SkillManager handles:
 - Registry: Storing and retrieving skills by name
 - Prompt generation: Creating the <available_skills> block for LLM
 
-Phase 1 only supports PromptSkills (SKILL.md files).
+Supports both PromptSkills (SKILL.md only) and CodeSkills (skill.py).
 """
 
 import logging
@@ -14,6 +14,7 @@ from pathlib import Path
 from typing import Iterator
 
 from .base import Skill, SkillContext, SkillMetadata, SkillResult, SkillSource
+from .code_skill import CodeSkillLoadError, is_code_skill, load_code_skill
 from .parser import SkillParseError
 from .prompt_skill import PromptSkill
 
@@ -98,7 +99,7 @@ class SkillManager:
                     skill = self.load_skill(skill_dir, source=SkillSource.BUNDLED)
                     self.register(skill)
                     discovered.append(skill.metadata)
-                except SkillParseError as e:
+                except (SkillParseError, CodeSkillLoadError) as e:
                     logger.warning("Failed to load skill from %s: %s", skill_dir, e)
 
         # Load user skills (higher priority, will override bundled)
@@ -108,7 +109,7 @@ class SkillManager:
                     skill = self.load_skill(skill_dir, source=SkillSource.USER)
                     self.register(skill)
                     discovered.append(skill.metadata)
-                except SkillParseError as e:
+                except (SkillParseError, CodeSkillLoadError) as e:
                     logger.warning("Failed to load skill from %s: %s", skill_dir, e)
 
         return discovered
@@ -138,8 +139,9 @@ class SkillManager:
     ) -> Skill:
         """Load a skill from its directory.
 
-        Currently only supports PromptSkills (SKILL.md only).
-        Future: detect skill.py for CodeSkills.
+        Detection logic:
+        - If skill.py exists → load as CodeSkill
+        - If only SKILL.md exists → load as PromptSkill
 
         Args:
             skill_dir: Directory containing the skill.
@@ -150,10 +152,12 @@ class SkillManager:
 
         Raises:
             SkillParseError: If skill cannot be loaded.
+            CodeSkillLoadError: If CodeSkill cannot be loaded.
         """
-        # Phase 1: Only PromptSkills
-        # Future: check for skill.py to create CodeSkill
-        return PromptSkill(skill_dir, source=source)
+        if is_code_skill(skill_dir):
+            return load_code_skill(skill_dir, source=source)
+        else:
+            return PromptSkill(skill_dir, source=source)
 
     def register(self, skill: Skill) -> None:
         """Register a skill in the registry.
