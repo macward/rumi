@@ -3,8 +3,10 @@
 import logging
 import os
 import re
+from pathlib import Path
 from typing import Any
 
+from groq import AsyncGroq
 from telegram import Update
 from telegram.constants import ParseMode
 from telegram.ext import (
@@ -17,9 +19,12 @@ from telegram.ext import (
 
 from ..agent import AgentConfig, AgentLoop, StopReason
 from ..logging import get_logger
+from ..memory import FactExtractor, ForgetTool, MemoryManager, MemoryStore, RememberTool
 from ..sandbox import SandboxConfig, SandboxManager
 from ..session import SessionConfig, SessionManager
 from ..tools import BashTool, ToolRegistry, WebFetchTool
+
+MEMORY_DB_PATH = Path.home() / ".miniclaw" / "memory.db"
 
 
 logger = logging.getLogger(__name__)
@@ -99,6 +104,7 @@ class TelegramBot:
         agent_config: AgentConfig | None = None,
         sandbox_config: SandboxConfig | None = None,
         session_config: SessionConfig | None = None,
+        memory_db_path: Path | None = None,
     ) -> None:
         self.token = token or os.getenv("TELEGRAM_TOKEN")
         if not self.token:
@@ -114,10 +120,23 @@ class TelegramBot:
         self.sandbox = SandboxManager(sandbox_config)
         self.sessions = SessionManager(session_config, sandbox=self.sandbox)
 
+        # Setup memory system
+        db_path = memory_db_path or MEMORY_DB_PATH
+        self.memory_store = MemoryStore(db_path)
+        self.memory_store.init_db()
+
+        # Create extractor with LLM client
+        groq_client = AsyncGroq(api_key=os.getenv("GROQ_API_KEY"))
+        extractor = FactExtractor(groq_client, model=agent_config.model)
+        self.memory_manager = MemoryManager(self.memory_store, extractor=extractor)
+
         # Create tool registry
         self.registry = ToolRegistry()
         self.registry.register(BashTool(self.sandbox))
         self.registry.register(WebFetchTool())
+        # Register memory tools
+        self.registry.register(RememberTool(self.memory_store))
+        self.registry.register(ForgetTool(self.memory_store))
 
         self.json_logger = get_logger()
         self._app: Application | None = None
@@ -147,6 +166,18 @@ class TelegramBot:
         """Handle /reset command."""
         assert update.message is not None
         chat_id = self._get_chat_id(update)
+
+        # Extract facts before reset
+        messages = self.sessions.get_messages(chat_id, limit=100, for_llm=True)
+        if messages:
+            agent = AgentLoop(
+                self.registry, self.agent_config, memory=self.memory_manager
+            )
+            facts = await agent.on_session_end(messages)
+            if facts:
+                await update.message.reply_text(
+                    f"📝 Guardé {len(facts)} nuevo(s) hecho(s) en memoria."
+                )
 
         await self.sessions.destroy_session(chat_id)
 
@@ -202,8 +233,10 @@ class TelegramBot:
             # Send typing indicator
             await update.message.chat.send_action("typing")
 
-            # Create agent and run with history
-            agent = AgentLoop(self.registry, self.agent_config)
+            # Create agent with memory and run with history
+            agent = AgentLoop(
+                self.registry, self.agent_config, memory=self.memory_manager
+            )
             result = await agent.run(message, chat_id=chat_id, history=history)
 
             # Log result
@@ -279,6 +312,9 @@ class TelegramBot:
             await self._app.updater.stop()  # type: ignore
             await self._app.stop()
             await self._app.shutdown()
+
+        # Close memory store
+        self.memory_store.close()
 
     def run(self) -> None:
         """Run the bot (blocking)."""
