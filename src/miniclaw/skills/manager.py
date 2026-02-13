@@ -38,6 +38,10 @@ class SkillsConfig:
 
     def __post_init__(self) -> None:
         """Validate config and set defaults."""
+        if self.bundled_dir is None:
+            # Default to the bundled skills in the package
+            self.bundled_dir = Path(__file__).parent / "bundled"
+
         if self.user_dir is None:
             self.user_dir = Path.home() / ".miniclaw" / "skills"
 

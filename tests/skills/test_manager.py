@@ -38,10 +38,11 @@ class TestSkillsConfig:
     """Tests for SkillsConfig dataclass."""
 
     def test_defaults(self):
-        """Default config uses home directory for user skills."""
+        """Default config uses home directory for user skills and package bundled dir."""
         config = SkillsConfig()
 
-        assert config.bundled_dir is None
+        assert config.bundled_dir is not None
+        assert "bundled" in str(config.bundled_dir)
         assert config.user_dir == Path.home() / ".miniclaw" / "skills"
         assert config.max_skills_in_prompt == 20
         assert config.disabled_skills == []
@@ -114,11 +115,13 @@ class TestSkillManagerDiscovery:
     def test_discover_user_skills(self, tmp_path):
         """Discover skills from user directory."""
         user = tmp_path / "user"
+        bundled = tmp_path / "bundled"  # Empty bundled to isolate test
         user.mkdir()
+        bundled.mkdir()
 
         create_skill_dir(user, "custom", "Custom user skill")
 
-        config = SkillsConfig(user_dir=user)
+        config = SkillsConfig(bundled_dir=bundled, user_dir=user)
         manager = SkillManager(config)
 
         discovered = manager.discover()
