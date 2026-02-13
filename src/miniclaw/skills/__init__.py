@@ -22,6 +22,7 @@ from .parser import (
     parse_skill_content,
     parse_skill_file,
 )
+from .prompt_skill import PromptSkill, load_prompt_skill
 
 __all__ = [
     "Skill",
@@ -33,4 +34,6 @@ __all__ = [
     "SkillValidationError",
     "parse_skill_content",
     "parse_skill_file",
+    "PromptSkill",
+    "load_prompt_skill",
 ]
