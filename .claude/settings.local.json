@@ -8,7 +8,15 @@
       "Bash(clear:*)",
       "mcp__vibeMCP__read_doc",
       "mcp__vibeMCP__tool_update_task_status",
-      "Bash(python:*)"
+      "Bash(python:*)",
+      "mcp__vibeMCP__tool_log_session",
+      "Bash(pip install:*)",
+      "Bash(docker build:*)",
+      "Bash(docker run:*)",
+      "mcp__vibeMCP__get_plan",
+      "Bash(wc:*)",
+      "Bash(pytest:*)",
+      "mcp__vibeMCP__tool_create_plan"
     ]
   }
 }
