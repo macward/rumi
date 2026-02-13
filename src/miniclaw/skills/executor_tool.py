@@ -7,7 +7,7 @@ It registers as a regular tool (use_skill) that delegates execution to SkillMana
 from typing import TYPE_CHECKING, Any
 
 from ..tools.base import Tool, ToolResult
-from .base import SkillContext
+from .base import LLMClient, SkillContext
 
 if TYPE_CHECKING:
     from ..session.manager import SessionState
@@ -41,15 +41,18 @@ class SkillExecutorTool(Tool):
         self,
         skill_manager: "SkillManager",
         tools: "ToolRegistry | None" = None,
+        llm: LLMClient | None = None,
     ) -> None:
         """Initialize the SkillExecutorTool.
 
         Args:
             skill_manager: The SkillManager to delegate execution to.
             tools: Optional ToolRegistry for creating SkillContext.
+            llm: Optional LLMClient for CodeSkills that need LLM access.
         """
         self._skill_manager = skill_manager
         self._tools = tools
+        self._llm = llm
 
     @property
     def name(self) -> str:
@@ -121,6 +124,7 @@ class SkillExecutorTool(Tool):
             session=session or SessionState(chat_id=chat_id),
             chat_id=chat_id,
             user_message=skill_input,
+            llm=self._llm,
         )
 
         # Execute through SkillManager
