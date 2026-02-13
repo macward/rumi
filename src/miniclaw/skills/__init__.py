@@ -16,6 +16,12 @@ from .base import (
     SkillResult,
     SkillSource,
 )
+from .parser import (
+    SkillParseError,
+    SkillValidationError,
+    parse_skill_content,
+    parse_skill_file,
+)
 
 __all__ = [
     "Skill",
@@ -23,4 +29,8 @@ __all__ = [
     "SkillMetadata",
     "SkillResult",
     "SkillSource",
+    "SkillParseError",
+    "SkillValidationError",
+    "parse_skill_content",
+    "parse_skill_file",
 ]
