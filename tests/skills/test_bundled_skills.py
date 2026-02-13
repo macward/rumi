@@ -1,6 +1,7 @@
 """Tests for bundled skills."""
 
 from pathlib import Path
+from unittest.mock import MagicMock
 
 import pytest
 
@@ -129,9 +130,13 @@ class TestBundledSkillsExecution:
 
     @pytest.fixture
     def context(self) -> SkillContext:
-        """Create minimal execution context."""
+        """Create minimal execution context with required tools mock."""
+        # Create a mock registry that reports bash as available
+        mock_registry = MagicMock(spec=ToolRegistry)
+        mock_registry.list_tools.return_value = ["bash"]
+
         return SkillContext(
-            tools=ToolRegistry(),
+            tools=mock_registry,
             session=SessionState(chat_id="test-bundled"),
             chat_id="test-bundled",
             user_message="Test execution",
@@ -172,7 +177,11 @@ class TestBundledSkillsIntegration:
         manager = SkillManager(config)
         manager.discover()
 
-        tool = SkillExecutorTool(manager)
+        # Create mock registry that reports bash as available
+        mock_tools = MagicMock(spec=ToolRegistry)
+        mock_tools.list_tools.return_value = ["bash"]
+
+        tool = SkillExecutorTool(manager, tools=mock_tools)
 
         result = await tool.execute(skill_name="summarize", chat_id="test")
         assert result.success is True

@@ -305,10 +305,28 @@ class SkillManager:
 
         return "\n".join(lines)
 
+    def get_missing_tools(self, name: str, available_tools: list[str]) -> list[str]:
+        """Check which required tools are missing for a skill.
+
+        Args:
+            name: Name of the skill.
+            available_tools: List of available tool names from ToolRegistry.
+
+        Returns:
+            List of tool names that are required but not available.
+        """
+        skill = self.get(name)
+        if skill is None:
+            return []
+
+        required = skill.metadata.tools_required
+        return [tool for tool in required if tool not in available_tools]
+
     async def execute(self, name: str, ctx: SkillContext) -> SkillResult:
         """Execute a skill by name.
 
-        Injects skill-specific settings into the context before execution.
+        Validates required tools and injects skill-specific settings
+        into the context before execution.
 
         Args:
             name: Name of the skill to execute.
@@ -331,6 +349,16 @@ class SkillManager:
                 success=False,
                 output="",
                 error=f"Skill is disabled: {name}",
+            )
+
+        # Validate required tools are available
+        available_tools = ctx.tools.list_tools()
+        missing_tools = self.get_missing_tools(name, available_tools)
+        if missing_tools:
+            return SkillResult(
+                success=False,
+                output="",
+                error=f"Skill '{name}' requires unavailable tools: {', '.join(missing_tools)}",
             )
 
         # Inject skill-specific settings into context

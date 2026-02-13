@@ -929,3 +929,153 @@ New instructions.
         assert manager.skill_count == 2
         assert manager.get("skill_one") is not None
         assert manager.get("skill_two") is not None
+
+
+class TestToolsRequiredValidation:
+    """Tests for tools_required validation during execution."""
+
+    def _create_skill_with_tools(
+        self, base: Path, name: str, tools_required: list[str]
+    ) -> Path:
+        """Create skill with tools_required in frontmatter."""
+        skill_dir = base / name
+        skill_dir.mkdir(parents=True)
+
+        tools_str = ", ".join(tools_required) if tools_required else ""
+        content = f"""---
+name: {name}
+description: Skill requiring tools
+tools_required: [{tools_str}]
+---
+Instructions.
+"""
+        (skill_dir / "SKILL.md").write_text(content)
+        return skill_dir
+
+    def test_get_missing_tools_none_missing(self, tmp_path):
+        """get_missing_tools returns empty list when all tools available."""
+        bundled = tmp_path / "bundled"
+        bundled.mkdir()
+        self._create_skill_with_tools(bundled, "needs_bash", ["bash"])
+
+        config = SkillsConfig(bundled_dir=bundled, user_dir=None)
+        manager = SkillManager(config)
+        manager.discover()
+
+        missing = manager.get_missing_tools("needs_bash", ["bash", "web_fetch"])
+        assert missing == []
+
+    def test_get_missing_tools_some_missing(self, tmp_path):
+        """get_missing_tools returns missing tools."""
+        bundled = tmp_path / "bundled"
+        bundled.mkdir()
+        self._create_skill_with_tools(bundled, "needs_many", ["bash", "unknown_tool"])
+
+        config = SkillsConfig(bundled_dir=bundled, user_dir=None)
+        manager = SkillManager(config)
+        manager.discover()
+
+        missing = manager.get_missing_tools("needs_many", ["bash"])
+        assert "unknown_tool" in missing
+        assert "bash" not in missing
+
+    def test_get_missing_tools_nonexistent_skill(self, tmp_path):
+        """get_missing_tools returns empty for nonexistent skill."""
+        config = SkillsConfig(bundled_dir=tmp_path, user_dir=None)
+        manager = SkillManager(config)
+
+        missing = manager.get_missing_tools("nonexistent", ["bash"])
+        assert missing == []
+
+    def test_get_missing_tools_no_requirements(self, tmp_path):
+        """get_missing_tools returns empty when no tools required."""
+        bundled = tmp_path / "bundled"
+        bundled.mkdir()
+        create_skill_dir(bundled, "no_tools", "No tools needed")
+
+        config = SkillsConfig(bundled_dir=bundled, user_dir=None)
+        manager = SkillManager(config)
+        manager.discover()
+
+        missing = manager.get_missing_tools("no_tools", [])
+        assert missing == []
+
+    @pytest.mark.asyncio
+    async def test_execute_validates_tools_required(self, tmp_path):
+        """Execute fails when required tools are missing."""
+        bundled = tmp_path / "bundled"
+        bundled.mkdir()
+        self._create_skill_with_tools(bundled, "needs_tool", ["bash", "custom_tool"])
+
+        config = SkillsConfig(bundled_dir=bundled, user_dir=None)
+        manager = SkillManager(config)
+        manager.discover()
+
+        # Mock tools registry that only has "bash"
+        mock_tools = MagicMock()
+        mock_tools.list_tools.return_value = ["bash"]
+
+        ctx = SkillContext(
+            tools=mock_tools,
+            session=MagicMock(),
+            chat_id="test_chat",
+            user_message="Test",
+        )
+
+        result = await manager.execute("needs_tool", ctx)
+
+        assert result.success is False
+        assert "custom_tool" in result.error
+        assert "unavailable tools" in result.error.lower()
+
+    @pytest.mark.asyncio
+    async def test_execute_succeeds_with_all_tools(self, tmp_path):
+        """Execute succeeds when all required tools are available."""
+        bundled = tmp_path / "bundled"
+        bundled.mkdir()
+        self._create_skill_with_tools(bundled, "needs_bash", ["bash"])
+
+        config = SkillsConfig(bundled_dir=bundled, user_dir=None)
+        manager = SkillManager(config)
+        manager.discover()
+
+        # Mock tools registry that has "bash"
+        mock_tools = MagicMock()
+        mock_tools.list_tools.return_value = ["bash", "web_fetch"]
+
+        ctx = SkillContext(
+            tools=mock_tools,
+            session=MagicMock(),
+            chat_id="test_chat",
+            user_message="Test",
+        )
+
+        result = await manager.execute("needs_bash", ctx)
+
+        # PromptSkill should succeed
+        assert result.success is True
+
+    @pytest.mark.asyncio
+    async def test_execute_no_tools_required(self, tmp_path):
+        """Execute succeeds when skill has no tools_required."""
+        bundled = tmp_path / "bundled"
+        bundled.mkdir()
+        create_skill_dir(bundled, "no_tools", "No tools needed")
+
+        config = SkillsConfig(bundled_dir=bundled, user_dir=None)
+        manager = SkillManager(config)
+        manager.discover()
+
+        mock_tools = MagicMock()
+        mock_tools.list_tools.return_value = []
+
+        ctx = SkillContext(
+            tools=mock_tools,
+            session=MagicMock(),
+            chat_id="test_chat",
+            user_message="Test",
+        )
+
+        result = await manager.execute("no_tools", ctx)
+
+        assert result.success is True
