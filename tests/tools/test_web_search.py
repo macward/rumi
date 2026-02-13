@@ -48,9 +48,8 @@ class TestWebSearchToolProperties:
         tool = WebSearchTool()
         topic = tool.parameters["properties"]["topic"]
         assert topic["type"] == "string"
-        assert "general" in topic["enum"]
-        assert "news" in topic["enum"]
-        assert "finance" in topic["enum"]
+        # No enum - we accept any value and default to "general" if invalid
+        assert "general" in topic["description"]
 
 
 class TestWebSearchToolInit:

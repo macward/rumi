@@ -82,8 +82,7 @@ class WebSearchTool(Tool):
                 },
                 "topic": {
                     "type": "string",
-                    "description": "Search topic: 'general', 'news', or 'finance'",
-                    "enum": ["general", "news", "finance"],
+                    "description": "Search topic: 'general' (default), 'news', or 'finance'. Use 'general' for most searches including weather.",
                 },
             },
             "required": ["query"],
