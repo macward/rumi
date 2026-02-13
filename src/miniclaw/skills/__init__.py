@@ -23,6 +23,7 @@ from .parser import (
     parse_skill_file,
 )
 from .prompt_skill import PromptSkill, load_prompt_skill
+from .manager import SkillManager, SkillsConfig
 
 __all__ = [
     "Skill",
@@ -36,4 +37,6 @@ __all__ = [
     "parse_skill_file",
     "PromptSkill",
     "load_prompt_skill",
+    "SkillManager",
+    "SkillsConfig",
 ]
