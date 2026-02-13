@@ -1,10 +1,12 @@
 """CLI commands for skill management.
 
-Provides subcommands for listing, enabling, and disabling skills.
+Provides subcommands for listing, enabling, disabling, and creating skills.
 """
 
 import argparse
+import re
 import sys
+from pathlib import Path
 
 from .config import load_config, save_config
 from .manager import SkillManager
@@ -152,6 +154,151 @@ def cmd_info(args: argparse.Namespace) -> int:
     return 0
 
 
+SKILL_MD_TEMPLATE = '''---
+name: {name}
+description: {description}
+version: 0.1.0
+tags: []
+enabled: true
+---
+
+# {name}
+
+Instructions for the LLM when this skill is activated.
+
+## When to use
+
+Describe when this skill should be invoked.
+
+## Steps
+
+1. First step
+2. Second step
+3. ...
+'''
+
+CODE_SKILL_TEMPLATE = '''"""CodeSkill implementation for {name}."""
+
+from miniclaw.skills import CodeSkill, SkillContext, SkillResult
+
+
+class {class_name}(CodeSkill):
+    """{description}"""
+
+    async def execute(self, ctx: SkillContext) -> SkillResult:
+        """Execute the skill.
+
+        Args:
+            ctx: Execution context with tools, session, LLM access.
+
+        Returns:
+            SkillResult with output or error.
+        """
+        # Access tools via ctx.tools
+        # Access LLM via ctx.llm.complete(prompt)
+        # Access settings via ctx.config
+
+        # Example: return a simple result
+        return SkillResult(
+            success=True,
+            output="Skill executed successfully.",
+        )
+'''
+
+
+def _validate_skill_name(name: str) -> str | None:
+    """Validate skill name.
+
+    Returns error message if invalid, None if valid.
+    """
+    if not name:
+        return "Skill name cannot be empty"
+
+    if not re.match(r'^[a-z][a-z0-9_]*$', name):
+        return "Skill name must start with lowercase letter and contain only a-z, 0-9, _"
+
+    if len(name) > 50:
+        return "Skill name must be 50 characters or less"
+
+    return None
+
+
+def _to_class_name(name: str) -> str:
+    """Convert skill name to PascalCase class name.
+
+    Example: my_skill -> MySkillSkill
+    """
+    parts = name.split('_')
+    return ''.join(word.capitalize() for word in parts) + 'Skill'
+
+
+def cmd_create(args: argparse.Namespace) -> int:
+    """Create a new skill from template."""
+    name = args.name
+
+    # Validate name
+    error = _validate_skill_name(name)
+    if error:
+        print(f"Error: {error}")
+        return 1
+
+    # Determine target directory
+    config = load_config()
+    user_dir = config.user_dir or (Path.home() / ".miniclaw" / "skills")
+    skill_dir = user_dir / name
+
+    # Check if already exists
+    if skill_dir.exists():
+        print(f"Error: Skill directory already exists: {skill_dir}")
+        return 1
+
+    # Check if name conflicts with existing skill
+    manager = SkillManager(config)
+    manager.discover()
+    if manager.get(name) is not None:
+        print(f"Error: A skill named '{name}' already exists.")
+        return 1
+
+    # Create directory
+    skill_dir.mkdir(parents=True, exist_ok=True)
+
+    # Get description from args or use placeholder
+    description = args.description or f"Description for {name}"
+
+    # Create SKILL.md
+    skill_md_content = SKILL_MD_TEMPLATE.format(
+        name=name,
+        description=description,
+    )
+    (skill_dir / "SKILL.md").write_text(skill_md_content)
+
+    # Create skill.py if --code flag
+    if args.code:
+        class_name = _to_class_name(name)
+        skill_py_content = CODE_SKILL_TEMPLATE.format(
+            name=name,
+            class_name=class_name,
+            description=description,
+        )
+        (skill_dir / "skill.py").write_text(skill_py_content)
+
+    # Print success message
+    print(f"\n✓ Created skill: {name}")
+    print(f"  Location: {skill_dir}")
+    print("\nFiles created:")
+    print(f"  - SKILL.md (skill definition)")
+    if args.code:
+        print(f"  - skill.py (CodeSkill implementation)")
+
+    print("\nNext steps:")
+    print(f"  1. Edit {skill_dir / 'SKILL.md'} to customize instructions")
+    if args.code:
+        print(f"  2. Implement your skill logic in {skill_dir / 'skill.py'}")
+    print(f"  3. Run 'miniclaw skills list' to verify the skill is discovered")
+
+    return 0
+
+
 def create_parser() -> argparse.ArgumentParser:
     """Create the argument parser for skills CLI."""
     parser = argparse.ArgumentParser(
@@ -181,6 +328,19 @@ def create_parser() -> argparse.ArgumentParser:
     info_parser = subparsers.add_parser("info", help="Show detailed skill info")
     info_parser.add_argument("name", help="Name of the skill")
 
+    # create command
+    create_parser = subparsers.add_parser("create", help="Create a new skill")
+    create_parser.add_argument("name", help="Name for the new skill (lowercase, underscores)")
+    create_parser.add_argument(
+        "-d", "--description",
+        help="Description of the skill",
+    )
+    create_parser.add_argument(
+        "--code",
+        action="store_true",
+        help="Create a CodeSkill with skill.py template",
+    )
+
     return parser
 
 
@@ -205,6 +365,7 @@ def run_skills_cli(argv: list[str] | None = None) -> int:
         "enable": cmd_enable,
         "disable": cmd_disable,
         "info": cmd_info,
+        "create": cmd_create,
     }
 
     handler = commands.get(args.command)
