@@ -31,7 +31,8 @@ from .parser import (
     parse_skill_file,
 )
 from .prompt_skill import PromptSkill, load_prompt_skill
-from .manager import SkillManager, SkillsConfig
+from .config import SkillsConfig, load_config, save_config
+from .manager import SkillManager
 from .executor_tool import SkillExecutorTool
 
 __all__ = [
@@ -48,10 +49,12 @@ __all__ = [
     "SkillValidationError",
     "is_code_skill",
     "load_code_skill",
+    "load_config",
     "parse_skill_content",
     "parse_skill_file",
     "PromptSkill",
     "load_prompt_skill",
+    "save_config",
     "SkillManager",
     "SkillsConfig",
     "SkillExecutorTool",

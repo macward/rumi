@@ -9,45 +9,16 @@ Supports both PromptSkills (SKILL.md only) and CodeSkills (skill.py).
 """
 
 import logging
-from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Iterator
+from typing import Any, Iterator
 
 from .base import Skill, SkillContext, SkillMetadata, SkillResult, SkillSource
 from .code_skill import CodeSkillLoadError, is_code_skill, load_code_skill
+from .config import SkillsConfig, load_config, save_config
 from .parser import SkillParseError
 from .prompt_skill import PromptSkill
 
 logger = logging.getLogger(__name__)
-
-
-@dataclass
-class SkillsConfig:
-    """Configuration for the skills system.
-
-    Attributes:
-        bundled_dir: Directory containing bundled skills (auto-detected if None).
-        user_dir: User's personal skills directory (~/.miniclaw/skills).
-        max_skills_in_prompt: Maximum skills to include in available_skills block.
-        disabled_skills: List of skill names to exclude.
-    """
-
-    bundled_dir: Path | None = None
-    user_dir: Path | None = None
-    max_skills_in_prompt: int = 20
-    disabled_skills: list[str] = field(default_factory=list)
-
-    def __post_init__(self) -> None:
-        """Validate config and set defaults."""
-        if self.bundled_dir is None:
-            # Default to the bundled skills in the package
-            self.bundled_dir = Path(__file__).parent / "bundled"
-
-        if self.user_dir is None:
-            self.user_dir = Path.home() / ".miniclaw" / "skills"
-
-        if self.max_skills_in_prompt < 1:
-            raise ValueError("max_skills_in_prompt must be at least 1")
 
 
 class SkillManager:
@@ -220,6 +191,49 @@ class SkillManager:
             return False
         return True
 
+    def enable(self, name: str) -> bool:
+        """Enable a disabled skill.
+
+        Removes the skill from the disabled_skills list if present.
+
+        Args:
+            name: Name of the skill to enable.
+
+        Returns:
+            True if the skill was enabled (was disabled), False otherwise.
+        """
+        if name in self.config.disabled_skills:
+            self.config.disabled_skills.remove(name)
+            return True
+        return False
+
+    def disable(self, name: str) -> bool:
+        """Disable a skill.
+
+        Adds the skill to the disabled_skills list if not already present.
+
+        Args:
+            name: Name of the skill to disable.
+
+        Returns:
+            True if the skill was disabled (wasn't already), False otherwise.
+        """
+        if name not in self.config.disabled_skills:
+            self.config.disabled_skills.append(name)
+            return True
+        return False
+
+    def get_skill_settings(self, name: str) -> dict[str, Any]:
+        """Get settings for a specific skill.
+
+        Args:
+            name: Name of the skill.
+
+        Returns:
+            Settings dict for the skill, or empty dict if none.
+        """
+        return self.config.get_skill_settings(name)
+
     def list_skills(self, include_disabled: bool = False) -> list[SkillMetadata]:
         """List metadata for all registered skills.
 
@@ -265,6 +279,8 @@ class SkillManager:
     async def execute(self, name: str, ctx: SkillContext) -> SkillResult:
         """Execute a skill by name.
 
+        Injects skill-specific settings into the context before execution.
+
         Args:
             name: Name of the skill to execute.
             ctx: Execution context with tools, session, etc.
@@ -287,6 +303,12 @@ class SkillManager:
                 output="",
                 error=f"Skill is disabled: {name}",
             )
+
+        # Inject skill-specific settings into context
+        skill_settings = self.get_skill_settings(name)
+        if skill_settings:
+            # Merge with existing config, skill settings take precedence
+            ctx.config = {**ctx.config, **skill_settings}
 
         return await skill.execute(ctx)
 
