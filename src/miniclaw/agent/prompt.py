@@ -27,12 +27,14 @@ For simple tasks that only need a single tool, use the tool directly."""
 def build_system_prompt(
     tools_schema: list[dict[str, Any]],
     available_skills_block: str = "",
+    memory_block: str = "",
 ) -> str:
-    """Build the system prompt with available tools and skills.
+    """Build the system prompt with available tools, skills, and memory.
 
     Args:
         tools_schema: List of tool schemas for the LLM.
         available_skills_block: Optional XML block with available skills.
+        memory_block: Optional XML block with user facts from memory.
 
     Returns:
         Complete system prompt string.
@@ -52,6 +54,10 @@ def build_system_prompt(
         prompt += SKILLS_INSTRUCTIONS.format(
             available_skills_block=available_skills_block
         )
+
+    # Add memory block if there are facts
+    if memory_block.strip():
+        prompt += "\n\n" + memory_block
 
     return prompt
 

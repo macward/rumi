@@ -1,15 +1,20 @@
 """Agent loop implementation."""
 
+from __future__ import annotations
+
 import json
 import os
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from groq import AsyncGroq
 
 from ..tools import ToolRegistry
 from .prompt import build_system_prompt, format_tool_result
+
+if TYPE_CHECKING:
+    from ..memory import MemoryManager
 
 
 class StopReason(Enum):
@@ -50,10 +55,12 @@ class AgentLoop:
         registry: ToolRegistry,
         config: AgentConfig | None = None,
         groq_client: AsyncGroq | None = None,
+        memory: MemoryManager | None = None,
     ) -> None:
         self.registry = registry
         self.config = config or AgentConfig()
         self.client = groq_client or AsyncGroq(api_key=os.getenv("GROQ_API_KEY"))
+        self.memory = memory
         self._last_tool_call: str | None = None
         self._repeated_count: int = 0
         self._consecutive_errors: int = 0
@@ -93,12 +100,19 @@ class AgentLoop:
         """
         self._reset_state()
 
+        # Load memory block if available
+        memory_block = ""
+        if self.memory:
+            facts = self.memory.load_all()
+            memory_block = self.memory.format_for_prompt(facts)
+
         messages: list[dict[str, Any]] = [
             {
                 "role": "system",
                 "content": build_system_prompt(
                     self.registry.get_tools_schema(),
                     self.config.available_skills_block,
+                    memory_block,
                 ),
             },
         ]
