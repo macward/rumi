@@ -77,10 +77,8 @@ class WebSearchTool(Tool):
                     "description": "The search query. Be specific for better results.",
                 },
                 "max_results": {
-                    "type": "integer",
+                    "type": ["integer", "string"],
                     "description": "Number of results to return (1-20, default 5)",
-                    "minimum": 1,
-                    "maximum": 20,
                 },
                 "topic": {
                     "type": "string",
@@ -125,7 +123,7 @@ class WebSearchTool(Tool):
     async def execute(
         self,
         query: str,
-        max_results: int | None = None,
+        max_results: int | str | None = None,
         topic: str = "general",
         **kwargs: Any,
     ) -> ToolResult:
@@ -133,7 +131,7 @@ class WebSearchTool(Tool):
 
         Args:
             query: The search query.
-            max_results: Override default max results.
+            max_results: Override default max results (accepts string for LLM tolerance).
             topic: Search topic (general, news, finance).
 
         Returns:
@@ -150,8 +148,13 @@ class WebSearchTool(Tool):
         if topic not in ("general", "news", "finance"):
             topic = "general"
 
-        # Use provided max_results or default
-        num_results = max_results if max_results is not None else self._max_results
+        # Use provided max_results or default (coerce string to int for LLM tolerance)
+        num_results = self._max_results
+        if max_results is not None:
+            try:
+                num_results = int(max_results)
+            except (ValueError, TypeError):
+                num_results = self._max_results
         num_results = min(max(1, num_results), 20)
 
         try:

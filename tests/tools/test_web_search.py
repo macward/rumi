@@ -41,9 +41,8 @@ class TestWebSearchToolProperties:
     def test_parameters_max_results(self):
         tool = WebSearchTool()
         max_results = tool.parameters["properties"]["max_results"]
-        assert max_results["type"] == "integer"
-        assert max_results["minimum"] == 1
-        assert max_results["maximum"] == 20
+        # Accepts both integer and string for LLM tolerance
+        assert max_results["type"] == ["integer", "string"]
 
     def test_parameters_topic(self):
         tool = WebSearchTool()
@@ -219,6 +218,21 @@ class TestWebSearchToolExecute:
             mock_client.search.assert_called_once()
             call_kwargs = mock_client.search.call_args.kwargs
             assert call_kwargs["max_results"] == 10
+
+    @pytest.mark.asyncio
+    async def test_search_with_string_max_results(self, monkeypatch):
+        """LLMs often pass numbers as strings - we should handle that."""
+        monkeypatch.setenv("TAVILY_API_KEY", "test-key")
+
+        mock_client = AsyncMock()
+        mock_client.search = AsyncMock(return_value={"results": []})
+
+        with patch("miniclaw.tools.web_search._get_client", return_value=mock_client):
+            tool = WebSearchTool()
+            await tool.execute(query="test", max_results="7")
+
+            call_kwargs = mock_client.search.call_args.kwargs
+            assert call_kwargs["max_results"] == 7  # Converted to int
 
     @pytest.mark.asyncio
     async def test_search_with_topic(self, monkeypatch):
