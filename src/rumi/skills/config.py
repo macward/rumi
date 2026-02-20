@@ -1,6 +1,6 @@
 """Skills configuration loader.
 
-Loads skills configuration from ~/.miniclaw/config.json and provides
+Loads skills configuration from ~/.rumi/config.json and provides
 utilities for managing skill settings at runtime.
 """
 
@@ -12,7 +12,7 @@ from typing import Any
 
 logger = logging.getLogger(__name__)
 
-DEFAULT_CONFIG_PATH = Path.home() / ".miniclaw" / "config.json"
+DEFAULT_CONFIG_PATH = Path.home() / ".rumi" / "config.json"
 
 
 @dataclass
@@ -21,7 +21,7 @@ class SkillsConfig:
 
     Attributes:
         bundled_dir: Directory containing bundled skills (auto-detected if None).
-        user_dir: User's personal skills directory (~/.miniclaw/skills).
+        user_dir: User's personal skills directory (~/.rumi/skills).
         workspace_dir: Optional workspace-specific skills directory.
         max_skills_in_prompt: Maximum skills to include in available_skills block.
         disabled_skills: List of skill names to exclude.
@@ -42,7 +42,7 @@ class SkillsConfig:
             self.bundled_dir = Path(__file__).parent / "bundled"
 
         if self.user_dir is None:
-            self.user_dir = Path.home() / ".miniclaw" / "skills"
+            self.user_dir = Path.home() / ".rumi" / "skills"
 
         if self.max_skills_in_prompt < 1:
             raise ValueError("max_skills_in_prompt must be at least 1")
@@ -77,7 +77,7 @@ def load_config(config_path: Path | None = None) -> SkillsConfig:
     ```json
     {
       "skills": {
-        "dirs": ["~/.miniclaw/skills", "~/my-skills"],
+        "dirs": ["~/.rumi/skills", "~/my-skills"],
         "disabled": ["git_review"],
         "max_in_prompt": 20,
         "settings": {

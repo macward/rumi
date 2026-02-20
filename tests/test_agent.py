@@ -3,9 +3,9 @@
 import pytest
 from unittest.mock import AsyncMock, MagicMock
 
-from miniclaw.agent import AgentConfig, AgentLoop, StopReason
-from miniclaw.agent.prompt import build_system_prompt
-from miniclaw.tools import Tool, ToolResult, ToolRegistry
+from rumi.agent import AgentConfig, AgentLoop, StopReason
+from rumi.agent.prompt import build_system_prompt
+from rumi.tools import Tool, ToolResult, ToolRegistry
 
 
 class MockTool(Tool):
@@ -83,13 +83,13 @@ def mock_client() -> AsyncMock:
 async def test_simple_response(registry: ToolRegistry, mock_client: AsyncMock) -> None:
     """Test agent returns LLM response when no tools called."""
     mock_client.chat.completions.create.return_value = make_mock_response(
-        content="Hello, I'm MiniClaw!"
+        content="Hello, I'm Rumi!"
     )
 
     agent = AgentLoop(registry, groq_client=mock_client)
     result = await agent.run("Hi")
 
-    assert result.response == "Hello, I'm MiniClaw!"
+    assert result.response == "Hello, I'm Rumi!"
     assert result.stop_reason == StopReason.COMPLETE
     assert result.turns == 1
 

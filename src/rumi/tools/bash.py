@@ -8,7 +8,7 @@ from ..sandbox import SandboxManager
 from .base import Tool, ToolResult
 
 
-# Commands allowed to execute (verified to exist in miniclaw-runner image)
+# Commands allowed to execute (verified to exist in rumi-runner image)
 ALLOWED_COMMANDS = frozenset({
     # File operations
     "ls", "cat", "head", "tail", "less", "more",

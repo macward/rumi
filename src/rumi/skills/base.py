@@ -25,7 +25,7 @@ class SkillSource(Enum):
     Precedence (highest to lowest):
     1. WORKSPACE - Project-specific skills
     2. USER - User's personal skills
-    3. BUNDLED - Included with MiniClaw
+    3. BUNDLED - Included with Rumi
     """
 
     BUNDLED = "bundled"

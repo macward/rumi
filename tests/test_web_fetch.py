@@ -2,7 +2,7 @@
 
 import pytest
 
-from miniclaw.tools.web_fetch import (
+from rumi.tools.web_fetch import (
     BLOCKED_NETWORKS,
     SSRFBlockedError,
     WebFetchTool,

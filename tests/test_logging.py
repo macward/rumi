@@ -6,7 +6,7 @@ from pathlib import Path
 
 import pytest
 
-from miniclaw.logging import JSONLLogger, LogEntry
+from rumi.logging import JSONLLogger, LogEntry
 
 
 @pytest.fixture

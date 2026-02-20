@@ -2,8 +2,8 @@
 
 import pytest
 
-from miniclaw.agent import StopReason
-from miniclaw.telegram.bot import (
+from rumi.agent import StopReason
+from rumi.telegram.bot import (
     MAX_MESSAGE_LENGTH,
     escape_markdown,
     format_response,
@@ -70,13 +70,13 @@ class TestFormatResponse:
 
 class TestTelegramBot:
     def test_requires_token(self):
-        from miniclaw.telegram import TelegramBot
+        from rumi.telegram import TelegramBot
 
         with pytest.raises(ValueError, match="TELEGRAM_TOKEN"):
             TelegramBot(token=None)
 
     def test_creates_with_token(self, monkeypatch):
-        from miniclaw.telegram import TelegramBot
+        from rumi.telegram import TelegramBot
 
         monkeypatch.setenv("GROQ_API_KEY", "test-key")
         bot = TelegramBot(token="test-token")

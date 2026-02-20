@@ -4,7 +4,7 @@ import pytest
 from pathlib import Path
 from unittest.mock import AsyncMock, MagicMock
 
-from miniclaw.skills import (
+from rumi.skills import (
     CodeSkill,
     CodeSkillLoadError,
     SkillContext,
@@ -68,7 +68,7 @@ tags: [test]
         # Create skill.py with a valid CodeSkill
         (skill_dir / "skill.py").write_text(
             '''
-from miniclaw.skills import CodeSkill, SkillContext, SkillResult
+from rumi.skills import CodeSkill, SkillContext, SkillResult
 
 class TestSkill(CodeSkill):
     async def execute(self, ctx: SkillContext) -> SkillResult:
@@ -131,7 +131,7 @@ class NotASkill:
         )
         (skill_dir / "skill.py").write_text(
             '''
-from miniclaw.skills import CodeSkill, SkillContext, SkillResult
+from rumi.skills import CodeSkill, SkillContext, SkillResult
 
 class SkillOne(CodeSkill):
     async def execute(self, ctx: SkillContext) -> SkillResult:
@@ -193,7 +193,7 @@ class TestCodeSkillExecution:
         )
         (skill_dir / "skill.py").write_text(
             '''
-from miniclaw.skills import CodeSkill, SkillContext, SkillResult
+from rumi.skills import CodeSkill, SkillContext, SkillResult
 
 class ExecSkill(CodeSkill):
     async def execute(self, ctx: SkillContext) -> SkillResult:
@@ -231,7 +231,7 @@ class ExecSkill(CodeSkill):
         )
         (skill_dir / "skill.py").write_text(
             '''
-from miniclaw.skills import CodeSkill, SkillContext, SkillResult
+from rumi.skills import CodeSkill, SkillContext, SkillResult
 
 class ToolSkill(CodeSkill):
     async def execute(self, ctx: SkillContext) -> SkillResult:
@@ -271,7 +271,7 @@ class ToolSkill(CodeSkill):
         )
         (skill_dir / "skill.py").write_text(
             '''
-from miniclaw.skills import CodeSkill, SkillContext, SkillResult
+from rumi.skills import CodeSkill, SkillContext, SkillResult
 
 class LLMSkill(CodeSkill):
     async def execute(self, ctx: SkillContext) -> SkillResult:
@@ -315,7 +315,7 @@ class TestCodeSkillRepr:
         )
         (skill_dir / "skill.py").write_text(
             '''
-from miniclaw.skills import CodeSkill, SkillContext, SkillResult
+from rumi.skills import CodeSkill, SkillContext, SkillResult
 
 class ReprSkill(CodeSkill):
     async def execute(self, ctx: SkillContext) -> SkillResult:
@@ -333,7 +333,7 @@ class TestSkillManagerWithCodeSkills:
 
     def test_manager_loads_code_skill(self, tmp_path: Path) -> None:
         """SkillManager should detect and load CodeSkills from skill.py."""
-        from miniclaw.skills import SkillManager, SkillsConfig
+        from rumi.skills import SkillManager, SkillsConfig
 
         # Create a CodeSkill
         skill_dir = tmp_path / "skills" / "code_skill"
@@ -343,7 +343,7 @@ class TestSkillManagerWithCodeSkills:
         )
         (skill_dir / "skill.py").write_text(
             '''
-from miniclaw.skills import CodeSkill, SkillContext, SkillResult
+from rumi.skills import CodeSkill, SkillContext, SkillResult
 
 class MyCodeSkill(CodeSkill):
     async def execute(self, ctx: SkillContext) -> SkillResult:
@@ -361,7 +361,7 @@ class MyCodeSkill(CodeSkill):
 
     def test_manager_loads_mixed_skills(self, tmp_path: Path) -> None:
         """SkillManager should load both PromptSkills and CodeSkills."""
-        from miniclaw.skills import SkillManager, SkillsConfig, PromptSkill
+        from rumi.skills import SkillManager, SkillsConfig, PromptSkill
 
         skills_dir = tmp_path / "skills"
 
@@ -380,7 +380,7 @@ class MyCodeSkill(CodeSkill):
         )
         (code_skill_dir / "skill.py").write_text(
             '''
-from miniclaw.skills import CodeSkill, SkillContext, SkillResult
+from rumi.skills import CodeSkill, SkillContext, SkillResult
 
 class MyCodeSkill(CodeSkill):
     async def execute(self, ctx: SkillContext) -> SkillResult:
@@ -403,7 +403,7 @@ class MyCodeSkill(CodeSkill):
     @pytest.mark.asyncio
     async def test_manager_executes_code_skill(self, tmp_path: Path) -> None:
         """SkillManager.execute should work with CodeSkills."""
-        from miniclaw.skills import SkillManager, SkillsConfig
+        from rumi.skills import SkillManager, SkillsConfig
 
         skill_dir = tmp_path / "skills" / "exec_test"
         skill_dir.mkdir(parents=True)
@@ -412,7 +412,7 @@ class MyCodeSkill(CodeSkill):
         )
         (skill_dir / "skill.py").write_text(
             '''
-from miniclaw.skills import CodeSkill, SkillContext, SkillResult
+from rumi.skills import CodeSkill, SkillContext, SkillResult
 
 class ExecTestSkill(CodeSkill):
     async def execute(self, ctx: SkillContext) -> SkillResult:

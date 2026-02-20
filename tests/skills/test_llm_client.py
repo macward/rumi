@@ -3,7 +3,7 @@
 import pytest
 from unittest.mock import AsyncMock, MagicMock
 
-from miniclaw.skills import GroqLLMClient, LLMClient
+from rumi.skills import GroqLLMClient, LLMClient
 
 
 class TestGroqLLMClient:
@@ -132,7 +132,7 @@ class TestSkillExecutorToolWithLLM:
     async def test_executor_passes_llm_to_context(self) -> None:
         """SkillExecutorTool should pass LLM to SkillContext."""
         from pathlib import Path
-        from miniclaw.skills import SkillManager, SkillsConfig, SkillExecutorTool
+        from rumi.skills import SkillManager, SkillsConfig, SkillExecutorTool
 
         # Create a mock LLM
         mock_llm = MagicMock()
@@ -149,7 +149,7 @@ class TestSkillExecutorToolWithLLM:
             )
             (skill_dir / "skill.py").write_text(
                 '''
-from miniclaw.skills import CodeSkill, SkillContext, SkillResult
+from rumi.skills import CodeSkill, SkillContext, SkillResult
 
 class LLMSkill(CodeSkill):
     async def execute(self, ctx: SkillContext) -> SkillResult:
@@ -179,7 +179,7 @@ class LLMSkill(CodeSkill):
     async def test_executor_without_llm_passes_none(self) -> None:
         """SkillExecutorTool without LLM should pass None to context."""
         from pathlib import Path
-        from miniclaw.skills import SkillManager, SkillsConfig, SkillExecutorTool
+        from rumi.skills import SkillManager, SkillsConfig, SkillExecutorTool
 
         import tempfile
 
@@ -191,7 +191,7 @@ class LLMSkill(CodeSkill):
             )
             (skill_dir / "skill.py").write_text(
                 '''
-from miniclaw.skills import CodeSkill, SkillContext, SkillResult
+from rumi.skills import CodeSkill, SkillContext, SkillResult
 
 class CheckLLMSkill(CodeSkill):
     async def execute(self, ctx: SkillContext) -> SkillResult:

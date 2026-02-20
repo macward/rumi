@@ -5,7 +5,7 @@ from pathlib import Path
 
 import pytest
 
-from miniclaw.memory import Fact, MemoryStore
+from rumi.memory import Fact, MemoryStore
 
 
 @pytest.fixture

@@ -37,7 +37,7 @@ class CodeSkill(Skill):
     - Maintain state during execution
 
     Example skill.py:
-        from miniclaw.skills import CodeSkill, SkillContext, SkillResult
+        from rumi.skills import CodeSkill, SkillContext, SkillResult
 
         class MySkill(CodeSkill):
             async def execute(self, ctx: SkillContext) -> SkillResult:
@@ -180,7 +180,7 @@ def _load_skill_class(skill_py: Path) -> Type[CodeSkill]:
         CodeSkillLoadError: If no valid CodeSkill subclass is found.
     """
     # Create a unique module name to avoid conflicts
-    module_name = f"miniclaw_skill_{skill_py.parent.name}_{id(skill_py)}"
+    module_name = f"rumi_skill_{skill_py.parent.name}_{id(skill_py)}"
 
     # Load the module using importlib
     spec = importlib.util.spec_from_file_location(module_name, skill_py)

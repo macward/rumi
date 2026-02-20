@@ -6,8 +6,8 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from miniclaw.sandbox import ExecResult, SandboxConfig, SandboxManager
-from miniclaw.tools.bash import ALLOWED_COMMANDS, BashTool
+from rumi.sandbox import ExecResult, SandboxConfig, SandboxManager
+from rumi.tools.bash import ALLOWED_COMMANDS, BashTool
 
 
 @pytest.fixture

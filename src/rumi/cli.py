@@ -1,4 +1,4 @@
-"""CLI interface for MiniClaw."""
+"""CLI interface for Rumi."""
 
 import asyncio
 import os
@@ -12,14 +12,15 @@ from .logging import configure_logger, get_logger
 from .memory import FactExtractor, ForgetTool, MemoryManager, MemoryStore, RememberTool
 from .sandbox import SandboxConfig, SandboxManager
 from .session import SessionConfig, SessionManager
+from .skills import SkillManager, SkillExecutorTool
 from .tools import BashTool, ToolRegistry, WebFetchTool, WebSearchTool
 
-MEMORY_DB_PATH = Path.home() / ".miniclaw" / "memory.db"
+MEMORY_DB_PATH = Path.home() / ".rumi" / "memory.db"
 
 
 BANNER = """
 ╔══════════════════════════════════════════╗
-║           🦀 MiniClaw v0.1.0             ║
+║           🦀 Rumi v0.1.0             ║
 ║    Educational Sandbox Assistant         ║
 ╚══════════════════════════════════════════╝
 
@@ -48,7 +49,7 @@ def _config_from_env() -> tuple[AgentConfig, SandboxConfig]:
 
 
 class CLI:
-    """Interactive command-line interface for MiniClaw."""
+    """Interactive command-line interface for Rumi."""
 
     def __init__(
         self,
@@ -91,6 +92,19 @@ class CLI:
             # Register memory tools
             registry.register(RememberTool(self.memory_store))
             registry.register(ForgetTool(self.memory_store))
+
+        # Initialize skill system
+        self.skill_manager = SkillManager()
+        self.skill_manager.discover()
+
+        # Register skill executor tool
+        skill_executor = SkillExecutorTool(self.skill_manager, tools=registry)
+        registry.register(skill_executor)
+
+        # Generate available skills block for prompt
+        available_skills_block = self.skill_manager.get_available_skills_prompt()
+        if available_skills_block:
+            config.available_skills_block = available_skills_block
 
         self.registry = registry
         self.config = config

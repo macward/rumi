@@ -1,4 +1,4 @@
-# MiniClaw Project Memory
+# Rumi Project Memory
 
 ## Project Status
 
@@ -8,7 +8,7 @@
 
 ### Phase Completion
 - [x] Phase 1: Core + Parser - Agent loop, CLI, logging
-- [x] Phase 2: Docker Sandbox - miniclaw-runner image, SandboxManager
+- [x] Phase 2: Docker Sandbox - rumi-runner image, SandboxManager
 - [x] Phase 3: web_fetch - SSRF-protected HTTP fetch
 - [x] Phase 4: Sessions - Per-chat state and locks
 - [x] Phase 5: Telegram - Bot with /stop, /reset commands

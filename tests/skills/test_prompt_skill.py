@@ -5,9 +5,9 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from miniclaw.skills.base import SkillContext, SkillSource
-from miniclaw.skills.parser import SkillParseError
-from miniclaw.skills.prompt_skill import PromptSkill, load_prompt_skill
+from rumi.skills.base import SkillContext, SkillSource
+from rumi.skills.parser import SkillParseError
+from rumi.skills.prompt_skill import PromptSkill, load_prompt_skill
 
 FIXTURES_DIR = Path(__file__).parent / "fixtures"
 

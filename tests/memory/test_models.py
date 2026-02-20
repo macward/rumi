@@ -2,8 +2,8 @@
 
 import pytest
 
-from miniclaw.memory import Fact
-from miniclaw.memory.models import Fact as FactFromModels
+from rumi.memory import Fact
+from rumi.memory.models import Fact as FactFromModels
 
 
 class TestFact:

@@ -1,5 +1,5 @@
-# miniclaw-runner: Minimal sandbox image for executing user commands
-# Build: docker build -t miniclaw-runner:latest -f docker/Dockerfile.runner .
+# rumi-runner: Minimal sandbox image for executing user commands
+# Build: docker build -t rumi-runner:latest -f docker/Dockerfile.runner .
 
 FROM alpine:3.19
 

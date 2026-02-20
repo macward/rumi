@@ -5,7 +5,7 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from miniclaw.skills.base import (
+from rumi.skills.base import (
     LLMClient,
     Skill,
     SkillContext,

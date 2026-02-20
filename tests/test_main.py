@@ -1,10 +1,10 @@
-"""Basic tests for miniclaw."""
+"""Basic tests for rumi."""
 
 import pytest
 
 
 def test_import():
-    """Test that miniclaw can be imported."""
-    import miniclaw
+    """Test that rumi can be imported."""
+    import rumi
 
-    assert miniclaw.__version__ == "0.1.0"
+    assert rumi.__version__ == "0.1.0"

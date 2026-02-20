@@ -24,7 +24,7 @@ class ExecResult:
 class SandboxConfig:
     """Configuration for sandbox containers."""
 
-    image: str = "miniclaw-runner:latest"
+    image: str = "rumi-runner:latest"
     memory_limit: str = "512m"
     cpu_limit: float = 1.0
     pids_limit: int = 128
@@ -34,13 +34,13 @@ class SandboxConfig:
 
     def __post_init__(self) -> None:
         if self.workspace_base is None:
-            self.workspace_base = Path.home() / ".miniclaw" / "workspace"
+            self.workspace_base = Path.home() / ".rumi" / "workspace"
 
 
 class SandboxManager:
     """Manages Docker containers for sandboxed command execution."""
 
-    CONTAINER_PREFIX = "miniclaw-runner"
+    CONTAINER_PREFIX = "rumi-runner"
 
     def __init__(self, config: SandboxConfig | None = None) -> None:
         self.config = config or SandboxConfig()
@@ -209,7 +209,7 @@ class SandboxManager:
             )
 
     def cleanup_all(self) -> int:
-        """Remove all miniclaw containers. Returns count of removed containers."""
+        """Remove all rumi containers. Returns count of removed containers."""
         count = 0
         for container in self.client.containers.list(all=True):
             if container.name.startswith(self.CONTAINER_PREFIX):

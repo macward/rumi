@@ -1,1 +1,1 @@
-"""MiniClaw tests."""
+"""Rumi tests."""

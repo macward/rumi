@@ -6,7 +6,7 @@
 **Date**: 2026-02
 
 ### Context
-MiniClaw needs to execute arbitrary user commands safely. Options considered:
+Rumi needs to execute arbitrary user commands safely. Options considered:
 1. chroot jails
 2. Linux namespaces directly
 3. Docker containers
@@ -146,7 +146,7 @@ Create one container per `chat_id`, keep alive during session, destroy on `/rese
 - **Clean slate**: `/reset` gives fresh environment
 
 ### Naming Convention
-`miniclaw-runner-{chat_id}`
+`rumi-runner-{chat_id}`
 
 ### Consequences
 - Must track container state per session
@@ -297,7 +297,7 @@ Skills should be customizable at project, user, and system levels.
 ### Decision
 Load skills from three directories with increasing precedence:
 1. **bundled** (lowest): Package-included skills
-2. **user** (medium): ~/.miniclaw/skills/
+2. **user** (medium): ~/.rumi/skills/
 3. **workspace** (highest): Project-specific
 
 ### Rationale
@@ -378,15 +378,15 @@ Validate `tools_required` against ToolRegistry before execution.
 Need user-friendly way to manage skills.
 
 ### Decision
-Add `miniclaw skills` subcommand with list/enable/disable/info/create.
+Add `rumi skills` subcommand with list/enable/disable/info/create.
 
 ### Commands
 ```
-miniclaw skills list [-a/--all]
-miniclaw skills enable <name>
-miniclaw skills disable <name>
-miniclaw skills info <name>
-miniclaw skills create <name> [--code] [-d DESC]
+rumi skills list [-a/--all]
+rumi skills enable <name>
+rumi skills disable <name>
+rumi skills info <name>
+rumi skills create <name> [--code] [-d DESC]
 ```
 
 ### Rationale
@@ -458,7 +458,7 @@ CREATE TABLE facts (
 
 ### Consequences
 - Single user only (no chat_id partitioning)
-- Database file at `~/.miniclaw/memory.db`
+- Database file at `~/.rumi/memory.db`
 - Must handle connection lifecycle
 
 ---

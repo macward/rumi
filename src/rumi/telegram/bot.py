@@ -1,4 +1,4 @@
-"""Telegram bot integration for MiniClaw."""
+"""Telegram bot integration for Rumi."""
 
 import logging
 import os
@@ -22,9 +22,10 @@ from ..logging import get_logger
 from ..memory import FactExtractor, ForgetTool, MemoryManager, MemoryStore, RememberTool
 from ..sandbox import SandboxConfig, SandboxManager
 from ..session import SessionConfig, SessionManager
+from ..skills import SkillExecutorTool, SkillManager
 from ..tools import BashTool, ToolRegistry, WebFetchTool, WebSearchTool
 
-MEMORY_DB_PATH = Path.home() / ".miniclaw" / "memory.db"
+MEMORY_DB_PATH = Path.home() / ".rumi" / "memory.db"
 
 
 logger = logging.getLogger(__name__)
@@ -46,7 +47,7 @@ def _config_from_env() -> tuple[AgentConfig, SandboxConfig]:
 
 
 WELCOME_MESSAGE = """
-🦀 *MiniClaw*
+🦀 *Rumi*
 
 Soy un asistente que puede ejecutar comandos en un entorno seguro.
 
@@ -96,7 +97,7 @@ def format_response(response: str, stop_reason: StopReason, turns: int) -> str:
 
 
 class TelegramBot:
-    """Telegram bot for MiniClaw."""
+    """Telegram bot for Rumi."""
 
     def __init__(
         self,
@@ -143,6 +144,19 @@ class TelegramBot:
         # Register memory tools
         self.registry.register(RememberTool(self.memory_store))
         self.registry.register(ForgetTool(self.memory_store))
+
+        # Initialize skill system
+        self.skill_manager = SkillManager()
+        self.skill_manager.discover()
+
+        # Register skill executor tool
+        skill_executor = SkillExecutorTool(self.skill_manager, tools=self.registry)
+        self.registry.register(skill_executor)
+
+        # Add available skills to agent config
+        available_skills_block = self.skill_manager.get_available_skills_prompt()
+        if available_skills_block:
+            self.agent_config.available_skills_block = available_skills_block
 
         self.json_logger = get_logger()
         self._app: Application | None = None

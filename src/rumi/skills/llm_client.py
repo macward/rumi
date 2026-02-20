@@ -17,7 +17,7 @@ class GroqLLMClient:
 
     Example:
         from groq import AsyncGroq
-        from miniclaw.skills.llm_client import GroqLLMClient
+        from rumi.skills.llm_client import GroqLLMClient
 
         groq = AsyncGroq(api_key="...")
         llm = GroqLLMClient(groq, model="llama-3.1-70b-versatile")

@@ -5,8 +5,8 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from miniclaw.skills.executor_tool import SkillExecutorTool
-from miniclaw.skills.manager import SkillManager, SkillsConfig
+from rumi.skills.executor_tool import SkillExecutorTool
+from rumi.skills.manager import SkillManager, SkillsConfig
 
 
 def create_skill_dir(base: Path, name: str, description: str, body: str = "") -> Path:
@@ -169,7 +169,7 @@ Body.
     @pytest.mark.asyncio
     async def test_execute_with_session(self, manager_with_skill):
         """Execute with session state."""
-        from miniclaw.session.manager import SessionState
+        from rumi.session.manager import SessionState
 
         session = SessionState(chat_id="test-session")
         tool = SkillExecutorTool(manager_with_skill)

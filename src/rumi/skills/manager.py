@@ -61,8 +61,8 @@ class SkillManager:
         """Discover skills from configured directories.
 
         Scans directories in order of precedence (lowest to highest):
-        1. bundled_dir - Skills included with MiniClaw
-        2. user_dir - User's personal skills (~/.miniclaw/skills)
+        1. bundled_dir - Skills included with Rumi
+        2. user_dir - User's personal skills (~/.rumi/skills)
         3. workspace_dir - Project-specific skills (optional)
 
         Skills are loaded and registered. If two skills have the same name,

@@ -1,4 +1,4 @@
-"""MiniClaw entry point."""
+"""Rumi entry point."""
 
 import asyncio
 import sys

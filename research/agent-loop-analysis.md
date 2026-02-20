@@ -1,8 +1,8 @@
-# Análisis del AgentLoop de MiniClaw
+# Análisis del AgentLoop de Rumi
 
 ## Resumen Ejecutivo
 
-El `AgentLoop` es el núcleo de MiniClaw: implementa el patrón **ReAct (Reasoning + Acting)** donde un LLM razona sobre qué hacer, ejecuta herramientas, y observa los resultados en un ciclo iterativo.
+El `AgentLoop` es el núcleo de Rumi: implementa el patrón **ReAct (Reasoning + Acting)** donde un LLM razona sobre qué hacer, ejecuta herramientas, y observa los resultados en un ciclo iterativo.
 
 **Características principales:**
 - Ciclo Think → Act → Observe
@@ -177,7 +177,7 @@ O en caso de error:
 
 ## Circuit Breakers
 
-MiniClaw implementa 3 mecanismos de protección para evitar loops infinitos:
+Rumi implementa 3 mecanismos de protección para evitar loops infinitos:
 
 ### 1. Max Turns
 
@@ -294,13 +294,13 @@ messages.append({"role": "user", "content": message})  # Mensaje actual
 ```python
 # Sin historial:
 [
-    {"role": "system", "content": "You are MiniClaw..."},
+    {"role": "system", "content": "You are Rumi..."},
     {"role": "user", "content": "ls /workspace"}
 ]
 
 # Con historial:
 [
-    {"role": "system", "content": "You are MiniClaw..."},
+    {"role": "system", "content": "You are Rumi..."},
     {"role": "user", "content": "My name is Alice"},           # history[0]
     {"role": "assistant", "content": "Nice to meet you!"},     # history[1]
     {"role": "user", "content": "What's 2+2?"},                # history[2]
@@ -421,7 +421,7 @@ AgentLoop                          ToolRegistry                    Tool
 El prompt del sistema se construye dinámicamente:
 
 ```python
-SYSTEM_PROMPT = """You are MiniClaw, a helpful assistant that can execute commands safely in a sandboxed environment.
+SYSTEM_PROMPT = """You are Rumi, a helpful assistant that can execute commands safely in a sandboxed environment.
 
 You have access to the following tools:
 {tools_description}
@@ -447,7 +447,7 @@ def build_system_prompt(tools_schema: list[dict]) -> str:
 
 **Resultado:**
 ```
-You are MiniClaw...
+You are Rumi...
 
 You have access to the following tools:
 - bash: Execute a bash command in the sandbox
@@ -605,7 +605,7 @@ for tool_call in assistant_message.tool_calls:
 **Problema:** El system prompt está en código.
 
 ```python
-SYSTEM_PROMPT = """You are MiniClaw..."""  # No configurable
+SYSTEM_PROMPT = """You are Rumi..."""  # No configurable
 ```
 
 **Impacto:** Cambiar el comportamiento requiere modificar código.
@@ -625,7 +625,7 @@ Sesión 2: "¿qué paquetes hay?" → tiene que ejecutar de nuevo
 
 ## Comparación con Otros Frameworks
 
-| Aspecto | MiniClaw | LangChain | AutoGPT |
+| Aspecto | Rumi | LangChain | AutoGPT |
 |---------|----------|-----------|---------|
 | Líneas de código | ~180 | ~10k+ | ~5k+ |
 | Circuit breakers | 3 | Configurable | Pocos |
@@ -748,7 +748,7 @@ async def run(self, message: str, chat_id: str = None, history: list = None) -> 
 
 ## Conclusiones
 
-El AgentLoop de MiniClaw es una implementación **minimalista pero completa** del patrón ReAct:
+El AgentLoop de Rumi es una implementación **minimalista pero completa** del patrón ReAct:
 
 1. **Suficiente para su propósito**: Un asistente personal con 2 herramientas
 2. **Bien protegido**: 3 circuit breakers cubren los casos de loop infinito
@@ -757,4 +757,4 @@ El AgentLoop de MiniClaw es una implementación **minimalista pero completa** de
 
 Las limitaciones (sin streaming, sin cancelación, sin paralelismo) son **trade-offs conscientes** para mantener ~200 líneas de código claro y mantenible.
 
-Para casos más complejos, se recomendaría migrar a LangChain o similar, pero para MiniClaw el enfoque actual es óptimo.
+Para casos más complejos, se recomendaría migrar a LangChain o similar, pero para Rumi el enfoque actual es óptimo.

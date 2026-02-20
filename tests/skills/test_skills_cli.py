@@ -5,7 +5,7 @@ import pytest
 from pathlib import Path
 from unittest.mock import patch
 
-from miniclaw.skills.cli import (
+from rumi.skills.cli import (
     cmd_list,
     cmd_enable,
     cmd_disable,
@@ -16,7 +16,7 @@ from miniclaw.skills.cli import (
     _validate_skill_name,
     _to_class_name,
 )
-from miniclaw.skills.config import SkillsConfig
+from rumi.skills.config import SkillsConfig
 
 
 def create_skill_dir(base: Path, name: str, description: str, **kwargs) -> Path:
@@ -44,7 +44,7 @@ Instructions for {name}.
 
 
 class TestSkillsListCommand:
-    """Tests for 'miniclaw skills list' command."""
+    """Tests for 'rumi skills list' command."""
 
     def test_list_shows_skills(self, tmp_path: Path, capsys):
         """List command shows discovered skills."""
@@ -55,7 +55,7 @@ class TestSkillsListCommand:
 
         config = SkillsConfig(bundled_dir=bundled, user_dir=None)
 
-        with patch("miniclaw.skills.cli.load_config", return_value=config):
+        with patch("rumi.skills.cli.load_config", return_value=config):
             result = run_skills_cli(["list"])
 
         assert result == 0
@@ -73,7 +73,7 @@ class TestSkillsListCommand:
 
         config = SkillsConfig(bundled_dir=bundled, user_dir=None)
 
-        with patch("miniclaw.skills.cli.load_config", return_value=config):
+        with patch("rumi.skills.cli.load_config", return_value=config):
             result = run_skills_cli(["list"])
 
         assert result == 0
@@ -90,7 +90,7 @@ class TestSkillsListCommand:
 
         config = SkillsConfig(bundled_dir=bundled, user_dir=None)
 
-        with patch("miniclaw.skills.cli.load_config", return_value=config):
+        with patch("rumi.skills.cli.load_config", return_value=config):
             result = run_skills_cli(["list", "--all"])
 
         assert result == 0
@@ -102,7 +102,7 @@ class TestSkillsListCommand:
         """List command with no skills."""
         config = SkillsConfig(bundled_dir=tmp_path / "empty", user_dir=None)
 
-        with patch("miniclaw.skills.cli.load_config", return_value=config):
+        with patch("rumi.skills.cli.load_config", return_value=config):
             result = run_skills_cli(["list"])
 
         assert result == 0
@@ -111,7 +111,7 @@ class TestSkillsListCommand:
 
 
 class TestSkillsEnableCommand:
-    """Tests for 'miniclaw skills enable' command."""
+    """Tests for 'rumi skills enable' command."""
 
     def test_enable_skill(self, tmp_path: Path, capsys):
         """Enable command removes skill from disabled list."""
@@ -133,8 +133,8 @@ class TestSkillsEnableCommand:
             saved_config = cfg
 
         with (
-            patch("miniclaw.skills.cli.load_config", return_value=config),
-            patch("miniclaw.skills.cli.save_config", mock_save),
+            patch("rumi.skills.cli.load_config", return_value=config),
+            patch("rumi.skills.cli.save_config", mock_save),
         ):
             result = run_skills_cli(["enable", "test_skill"])
 
@@ -151,7 +151,7 @@ class TestSkillsEnableCommand:
 
         config = SkillsConfig(bundled_dir=bundled, user_dir=None)
 
-        with patch("miniclaw.skills.cli.load_config", return_value=config):
+        with patch("rumi.skills.cli.load_config", return_value=config):
             result = run_skills_cli(["enable", "test_skill"])
 
         assert result == 0
@@ -162,7 +162,7 @@ class TestSkillsEnableCommand:
         """Enable command on nonexistent skill."""
         config = SkillsConfig(bundled_dir=tmp_path / "empty", user_dir=None)
 
-        with patch("miniclaw.skills.cli.load_config", return_value=config):
+        with patch("rumi.skills.cli.load_config", return_value=config):
             result = run_skills_cli(["enable", "nonexistent"])
 
         assert result == 1
@@ -177,7 +177,7 @@ class TestSkillsEnableCommand:
 
         config = SkillsConfig(bundled_dir=bundled, user_dir=None)
 
-        with patch("miniclaw.skills.cli.load_config", return_value=config):
+        with patch("rumi.skills.cli.load_config", return_value=config):
             result = run_skills_cli(["enable", "disabled_skill"])
 
         assert result == 1
@@ -186,7 +186,7 @@ class TestSkillsEnableCommand:
 
 
 class TestSkillsDisableCommand:
-    """Tests for 'miniclaw skills disable' command."""
+    """Tests for 'rumi skills disable' command."""
 
     def test_disable_skill(self, tmp_path: Path, capsys):
         """Disable command adds skill to disabled list."""
@@ -202,8 +202,8 @@ class TestSkillsDisableCommand:
             saved_config = cfg
 
         with (
-            patch("miniclaw.skills.cli.load_config", return_value=config),
-            patch("miniclaw.skills.cli.save_config", mock_save),
+            patch("rumi.skills.cli.load_config", return_value=config),
+            patch("rumi.skills.cli.save_config", mock_save),
         ):
             result = run_skills_cli(["disable", "test_skill"])
 
@@ -224,7 +224,7 @@ class TestSkillsDisableCommand:
             disabled_skills=["test_skill"],
         )
 
-        with patch("miniclaw.skills.cli.load_config", return_value=config):
+        with patch("rumi.skills.cli.load_config", return_value=config):
             result = run_skills_cli(["disable", "test_skill"])
 
         assert result == 0
@@ -235,7 +235,7 @@ class TestSkillsDisableCommand:
         """Disable command on nonexistent skill."""
         config = SkillsConfig(bundled_dir=tmp_path / "empty", user_dir=None)
 
-        with patch("miniclaw.skills.cli.load_config", return_value=config):
+        with patch("rumi.skills.cli.load_config", return_value=config):
             result = run_skills_cli(["disable", "nonexistent"])
 
         assert result == 1
@@ -244,7 +244,7 @@ class TestSkillsDisableCommand:
 
 
 class TestSkillsInfoCommand:
-    """Tests for 'miniclaw skills info' command."""
+    """Tests for 'rumi skills info' command."""
 
     def test_info_shows_details(self, tmp_path: Path, capsys):
         """Info command shows skill details."""
@@ -260,7 +260,7 @@ class TestSkillsInfoCommand:
 
         config = SkillsConfig(bundled_dir=bundled, user_dir=None)
 
-        with patch("miniclaw.skills.cli.load_config", return_value=config):
+        with patch("rumi.skills.cli.load_config", return_value=config):
             result = run_skills_cli(["info", "test_skill"])
 
         assert result == 0
@@ -275,7 +275,7 @@ class TestSkillsInfoCommand:
         """Info command on nonexistent skill."""
         config = SkillsConfig(bundled_dir=tmp_path / "empty", user_dir=None)
 
-        with patch("miniclaw.skills.cli.load_config", return_value=config):
+        with patch("rumi.skills.cli.load_config", return_value=config):
             result = run_skills_cli(["info", "nonexistent"])
 
         assert result == 1
@@ -288,12 +288,12 @@ class TestSkillsCLIHelp:
 
     def test_no_command_shows_help(self, capsys):
         """No command shows help."""
-        with patch("miniclaw.skills.cli.load_config"):
+        with patch("rumi.skills.cli.load_config"):
             result = run_skills_cli([])
 
         assert result == 0
         captured = capsys.readouterr()
-        assert "Manage MiniClaw skills" in captured.out
+        assert "Manage Rumi skills" in captured.out
 
     def test_parser_structure(self):
         """Parser has expected subcommands."""
@@ -327,7 +327,7 @@ class TestSkillsCLIHelp:
 
 
 class TestSkillsCreateCommand:
-    """Tests for 'miniclaw skills create' command."""
+    """Tests for 'rumi skills create' command."""
 
     def test_create_prompt_skill(self, tmp_path: Path, capsys):
         """Create command creates PromptSkill directory and SKILL.md."""
@@ -338,7 +338,7 @@ class TestSkillsCreateCommand:
             user_dir=user_dir,
         )
 
-        with patch("miniclaw.skills.cli.load_config", return_value=config):
+        with patch("rumi.skills.cli.load_config", return_value=config):
             result = run_skills_cli(["create", "my_skill"])
 
         assert result == 0
@@ -365,7 +365,7 @@ class TestSkillsCreateCommand:
             user_dir=user_dir,
         )
 
-        with patch("miniclaw.skills.cli.load_config", return_value=config):
+        with patch("rumi.skills.cli.load_config", return_value=config):
             result = run_skills_cli(["create", "my_code_skill", "--code"])
 
         assert result == 0
@@ -388,7 +388,7 @@ class TestSkillsCreateCommand:
             user_dir=user_dir,
         )
 
-        with patch("miniclaw.skills.cli.load_config", return_value=config):
+        with patch("rumi.skills.cli.load_config", return_value=config):
             result = run_skills_cli([
                 "create", "desc_skill",
                 "-d", "A custom description"
@@ -406,7 +406,7 @@ class TestSkillsCreateCommand:
             user_dir=tmp_path / "user",
         )
 
-        with patch("miniclaw.skills.cli.load_config", return_value=config):
+        with patch("rumi.skills.cli.load_config", return_value=config):
             # Name starting with number
             result = run_skills_cli(["create", "123skill"])
             assert result == 1
@@ -430,7 +430,7 @@ class TestSkillsCreateCommand:
             user_dir=user_dir,
         )
 
-        with patch("miniclaw.skills.cli.load_config", return_value=config):
+        with patch("rumi.skills.cli.load_config", return_value=config):
             result = run_skills_cli(["create", "existing"])
 
         assert result == 1
@@ -451,7 +451,7 @@ class TestSkillsCreateCommand:
             user_dir=user_dir,
         )
 
-        with patch("miniclaw.skills.cli.load_config", return_value=config):
+        with patch("rumi.skills.cli.load_config", return_value=config):
             result = run_skills_cli(["create", "conflict_name"])
 
         assert result == 1

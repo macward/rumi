@@ -5,14 +5,14 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from miniclaw.skills import SkillManager, SkillsConfig
-from miniclaw.skills.base import SkillContext, SkillSource
-from miniclaw.session.manager import SessionState
-from miniclaw.tools import ToolRegistry
+from rumi.skills import SkillManager, SkillsConfig
+from rumi.skills.base import SkillContext, SkillSource
+from rumi.session.manager import SessionState
+from rumi.tools import ToolRegistry
 
 
 # Path to the actual bundled skills
-BUNDLED_DIR = Path(__file__).parent.parent.parent / "src" / "miniclaw" / "skills" / "bundled"
+BUNDLED_DIR = Path(__file__).parent.parent.parent / "src" / "rumi" / "skills" / "bundled"
 
 
 class TestBundledSkillsDiscovery:
@@ -171,7 +171,7 @@ class TestBundledSkillsIntegration:
     @pytest.mark.asyncio
     async def test_executor_tool_with_bundled_skills(self):
         """SkillExecutorTool can invoke bundled skills."""
-        from miniclaw.skills import SkillExecutorTool
+        from rumi.skills import SkillExecutorTool
 
         config = SkillsConfig(bundled_dir=BUNDLED_DIR)
         manager = SkillManager(config)

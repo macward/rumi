@@ -1,9 +1,9 @@
-# Create Mermaid diagram file for MiniClaw v1.2 (Docker Architecture)
+# Create Mermaid diagram file for Rumi v1.2 (Docker Architecture)
 
 import pypandoc
 
 diagram_content = """
-# MiniClaw — Arquitectura v1.2 (MVP con Docker)
+# Rumi — Arquitectura v1.2 (MVP con Docker)
 
 ```mermaid
 graph TB
@@ -22,7 +22,7 @@ graph TB
 
     subgraph SANDBOX["Docker Sandbox Layer"]
         SBM["SandboxManager"]
-        CONTAINER["miniclaw-runner-{chat_id}<br/>isolated container"]
+        CONTAINER["rumi-runner-{chat_id}<br/>isolated container"]
         WORKSPACE["/workspace<br/>volume mount"]
     end
 
@@ -54,7 +54,7 @@ graph TB
 ```
 """
 
-output_path = "/mnt/data/MiniClaw_Architecture_v1_2_Docker.md"
+output_path = "/mnt/data/Rumi_Architecture_v1_2_Docker.md"
 
 pypandoc.convert_text(
     diagram_content,

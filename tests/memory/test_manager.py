@@ -5,7 +5,7 @@ from unittest.mock import AsyncMock, Mock
 
 import pytest
 
-from miniclaw.memory import Fact, FactExtractor, MemoryManager, MemoryStore
+from rumi.memory import Fact, FactExtractor, MemoryManager, MemoryStore
 
 
 @pytest.fixture
@@ -98,12 +98,12 @@ class TestMemoryManagerFormat:
     def test_format_preserves_values_with_special_chars(self, manager: MemoryManager):
         """format_for_prompt handles special characters in values."""
         facts = [
-            Fact(key="proyecto", value="mini-claw (agente con Docker)"),
+            Fact(key="proyecto", value="rumi (agente con Docker)"),
             Fact(key="stack", value="Python, TypeScript & React"),
         ]
         result = manager.format_for_prompt(facts)
 
-        assert "mini-claw (agente con Docker)" in result
+        assert "rumi (agente con Docker)" in result
         assert "Python, TypeScript & React" in result
 
 
@@ -169,6 +169,6 @@ class TestMemoryManagerExport:
 
     def test_exported_from_package(self):
         """MemoryManager is exported from memory package."""
-        from miniclaw.memory import MemoryManager as ExportedManager
+        from rumi.memory import MemoryManager as ExportedManager
 
         assert ExportedManager is MemoryManager

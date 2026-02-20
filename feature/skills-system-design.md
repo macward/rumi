@@ -2,7 +2,7 @@
 
 ## Problem Statement
 
-MiniClaw tiene tools (bash, web_fetch) registrados manualmente en código. Para convertirse en Rumi, necesita:
+Rumi tiene tools (bash, web_fetch) registrados manualmente en código. Para convertirse en Rumi, necesita:
 
 - **Extensibilidad sin tocar core**: agregar capacidades nuevas sin modificar `cli.py` o `bot.py`
 - **Composición**: combinar tools existentes en flujos de trabajo reutilizables

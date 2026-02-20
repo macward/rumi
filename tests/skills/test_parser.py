@@ -4,8 +4,8 @@ from pathlib import Path
 
 import pytest
 
-from miniclaw.skills.base import SkillSource
-from miniclaw.skills.parser import (
+from rumi.skills.base import SkillSource
+from rumi.skills.parser import (
     SkillParseError,
     SkillValidationError,
     parse_skill_content,

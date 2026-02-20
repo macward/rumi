@@ -1,4 +1,4 @@
-"""Skills module for MiniClaw extensibility.
+"""Skills module for Rumi extensibility.
 
 Skills provide reusable knowledge and orchestration patterns that guide the LLM
 in completing complex tasks. Unlike Tools (atomic capabilities), Skills represent

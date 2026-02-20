@@ -4,7 +4,7 @@ from unittest.mock import AsyncMock, Mock
 
 import pytest
 
-from miniclaw.memory import Fact, FactExtractor
+from rumi.memory import Fact, FactExtractor
 
 
 @pytest.fixture
@@ -206,6 +206,6 @@ class TestFactExtractorExport:
 
     def test_exported_from_package(self):
         """FactExtractor is exported from memory package."""
-        from miniclaw.memory import FactExtractor as ExportedExtractor
+        from rumi.memory import FactExtractor as ExportedExtractor
 
         assert ExportedExtractor is FactExtractor

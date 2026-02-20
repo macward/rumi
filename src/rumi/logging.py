@@ -40,7 +40,7 @@ class JSONLLogger:
         max_size_mb: float = 10.0,
     ) -> None:
         if log_dir is None:
-            log_dir = Path.home() / ".miniclaw" / "logs"
+            log_dir = Path.home() / ".rumi" / "logs"
         self.log_dir = Path(log_dir)
         self.log_dir.mkdir(parents=True, exist_ok=True)
         self.filename = filename

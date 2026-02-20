@@ -1,4 +1,4 @@
-# MiniClaw
+# Rumi
 
 Asistente personal de servidor con fines educativos que ejecuta herramientas reales de forma segura mediante Docker sandboxing.
 
@@ -23,8 +23,8 @@ Asistente personal de servidor con fines educativos que ejecuta herramientas rea
 ### 1. Clonar el repositorio
 
 ```bash
-git clone https://github.com/tu-usuario/mini-claw.git
-cd mini-claw
+git clone https://github.com/tu-usuario/rumi.git
+cd rumi
 ```
 
 ### 2. Crear entorno virtual
@@ -44,7 +44,7 @@ pip install -e ".[dev]"
 ### 4. Construir imagen Docker
 
 ```bash
-docker build -t miniclaw-runner:latest -f docker/Dockerfile.runner .
+docker build -t rumi-runner:latest -f docker/Dockerfile.runner .
 ```
 
 ### 5. Configurar variables de entorno
@@ -73,12 +73,12 @@ SANDBOX_MEMORY=512m
 ### CLI Interactivo
 
 ```bash
-miniclaw
+rumi
 ```
 
 ```
 ╔══════════════════════════════════════════╗
-║           🦀 MiniClaw v0.1.0             ║
+║           🦀 Rumi v0.1.0             ║
 ║    Educational Sandbox Assistant         ║
 ╚══════════════════════════════════════════╝
 
@@ -97,7 +97,7 @@ you> lista los archivos en /workspace
 3. Ejecuta:
 
 ```bash
-miniclaw bot
+rumi bot
 ```
 
 Comandos disponibles en Telegram:
@@ -176,8 +176,8 @@ Obtiene contenido de URLs públicas. Protecciones SSRF:
 ## Estructura del Proyecto
 
 ```
-mini-claw/
-├── src/miniclaw/
+rumi/
+├── src/rumi/
 │   ├── agent/           # AgentLoop, PromptBuilder
 │   │   ├── loop.py      # Ciclo principal del agente
 │   │   └── prompt.py    # Construcción de prompts
@@ -217,10 +217,10 @@ mini-claw/
 
 ### Directorios
 
-MiniClaw crea los siguientes directorios en `~/.miniclaw/`:
+Rumi crea los siguientes directorios en `~/.rumi/`:
 
 ```
-~/.miniclaw/
+~/.rumi/
 ├── workspace/{chat_id}/  # Workspace por sesión (montado en /workspace)
 ├── sessions/{chat_id}.json  # Estado persistido de sesiones
 └── logs/logs.jsonl       # Logs estructurados
@@ -228,7 +228,7 @@ MiniClaw crea los siguientes directorios en `~/.miniclaw/`:
 
 ### Ciclo de Vida de Contenedores
 
-- **Startup**: Limpia contenedores huérfanos (`miniclaw-runner-*`)
+- **Startup**: Limpia contenedores huérfanos (`rumi-runner-*`)
 - **Por sesión**: Un contenedor por `chat_id`, creado on-demand
 - **Reset/Exit**: Destruye el contenedor de la sesión
 - **TTL**: Sesiones expiran después de 1 hora de inactividad (configurable)
@@ -250,7 +250,7 @@ El agente se detiene automáticamente si:
 pytest
 
 # Con coverage
-pytest --cov=miniclaw
+pytest --cov=rumi
 
 # Tests específicos
 pytest tests/test_sandbox.py -v
@@ -268,7 +268,7 @@ ruff format src/
 1. Crea una clase que implemente `Tool`:
 
 ```python
-from miniclaw.tools import Tool, ToolResult
+from rumi.tools import Tool, ToolResult
 
 class MyTool(Tool):
     @property
@@ -302,7 +302,7 @@ registry.register(MyTool())
 
 ## Logs
 
-Los logs se escriben en formato JSONL en `~/.miniclaw/logs/logs.jsonl`:
+Los logs se escriben en formato JSONL en `~/.rumi/logs/logs.jsonl`:
 
 ```json
 {"timestamp": "2024-01-15T10:30:00Z", "event": "command", "chat_id": "cli-abc123", "argv": ["ls", "-la"], "exit_code": 0, "duration_ms": 45.2}
@@ -335,20 +335,20 @@ Verifica que Docker esté corriendo:
 docker ps
 ```
 
-### "Image not found: miniclaw-runner"
+### "Image not found: rumi-runner"
 
 Construye la imagen:
 
 ```bash
-docker build -t miniclaw-runner:latest -f docker/Dockerfile.runner .
+docker build -t rumi-runner:latest -f docker/Dockerfile.runner .
 ```
 
 ### Contenedores huérfanos
 
-Limpia contenedores de MiniClaw:
+Limpia contenedores de Rumi:
 
 ```bash
-docker rm -f $(docker ps -aq --filter "name=miniclaw-runner-")
+docker rm -f $(docker ps -aq --filter "name=rumi-runner-")
 ```
 
 ## Licencia

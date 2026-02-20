@@ -7,7 +7,7 @@ from pathlib import Path
 
 import pytest
 
-from miniclaw.session import SessionConfig, SessionManager, SessionState
+from rumi.session import SessionConfig, SessionManager, SessionState
 
 
 @pytest.fixture

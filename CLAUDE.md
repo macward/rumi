@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-MiniClaw is an educational personal server assistant that executes real tools safely using Docker sandboxing. It's an AI agent (chatbot) that runs bash commands inside isolated containers.
+Rumi is an educational personal server assistant that executes real tools safely using Docker sandboxing. It's an AI agent (chatbot) that runs bash commands inside isolated containers.
 
 ## Architecture
 
@@ -16,7 +16,7 @@ Input (CLI/Telegram) → Agent Loop → ToolRegistry → SandboxManager → Dock
 
 ### Core Components
 - **Agent Loop**: think → act → observe cycle with circuit breakers
-- **SandboxManager**: Creates/destroys Docker containers per session (`miniclaw-runner-{chat_id}`)
+- **SandboxManager**: Creates/destroys Docker containers per session (`rumi-runner-{chat_id}`)
 - **ToolRegistry**: Manages available tools (bash, web_fetch)
 - **SessionManager**: Handles per-session state and locks
 
@@ -33,7 +33,7 @@ Input (CLI/Telegram) → Agent Loop → ToolRegistry → SandboxManager → Dock
 ```
 
 ### Workspace
-Per-session volume mount: `~/.miniclaw/workspace/{chat_id}` → `/workspace`
+Per-session volume mount: `~/.rumi/workspace/{chat_id}` → `/workspace`
 
 ## Tools
 
@@ -63,7 +63,7 @@ JSONL logs with: `container_id`, `argv`, duration, `exit_code`, `truncated`, `st
 ## Development Phases
 
 1. **Core + Parser** - Stable loop, CLI, logs
-2. **Docker Sandbox** - miniclaw-runner image, SandboxManager, bash via docker exec
+2. **Docker Sandbox** - rumi-runner image, SandboxManager, bash via docker exec
 3. **web_fetch seguro** - SSRF-protected fetch
 4. **Sessions persistentes** - Persistent session storage
 5. **Telegram** - Bot integration with /stop, /reset commands
@@ -78,4 +78,4 @@ JSONL logs with: `container_id`, `argv`, duration, `exit_code`, `truncated`, `st
 
 ## Vibe Workspace
 
-vibe: mini-claw
+vibe: rumi

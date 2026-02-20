@@ -3,8 +3,8 @@
 import os
 import pytest
 
-from miniclaw.cli import CLI
-from miniclaw.agent import StopReason
+from rumi.cli import CLI
+from rumi.agent import StopReason
 
 
 @pytest.fixture

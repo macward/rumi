@@ -5,9 +5,9 @@ from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
 
-from miniclaw.agent.loop import AgentLoop, AgentConfig, AgentResult, StopReason
-from miniclaw.memory import Fact, FactExtractor, MemoryManager, MemoryStore
-from miniclaw.tools import ToolRegistry
+from rumi.agent.loop import AgentLoop, AgentConfig, AgentResult, StopReason
+from rumi.memory import Fact, FactExtractor, MemoryManager, MemoryStore
+from rumi.tools import ToolRegistry
 
 
 @pytest.fixture

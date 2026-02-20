@@ -1,8 +1,8 @@
-# Análisis del Sistema de Memoria de MiniClaw
+# Análisis del Sistema de Memoria de Rumi
 
 ## Resumen Ejecutivo
 
-MiniClaw implementa un sistema de memoria basado en **sesiones persistentes** con tres responsabilidades principales:
+Rumi implementa un sistema de memoria basado en **sesiones persistentes** con tres responsabilidades principales:
 
 1. **Persistencia**: Guardar/cargar estado de conversación en disco
 2. **Concurrencia**: Locks para evitar procesamiento simultáneo por sesión
@@ -36,7 +36,7 @@ MiniClaw implementa un sistema de memoria basado en **sesiones persistentes** co
 │    │          ▼                                             │       │
 │    │  ┌────────────────────────────────────────────────────┐│       │
 │    │  │         PERSISTENCIA EN DISCO                      ││       │
-│    │  │  ~/.miniclaw/sessions/{chat_id}.json              ││       │
+│    │  │  ~/.rumi/sessions/{chat_id}.json              ││       │
 │    │  └────────────────────────────────────────────────────┘│       │
 │    └────────────────────────────────────────────────────────┘       │
 │                           │                                         │
@@ -116,7 +116,7 @@ class SessionState:
 ```python
 @dataclass
 class SessionConfig:
-    sessions_dir: Path      # Default: ~/.miniclaw/sessions/
+    sessions_dir: Path      # Default: ~/.rumi/sessions/
     ttl_seconds: float      # Default: 3600 (1 hora)
     cleanup_interval: float # Default: 300 (5 minutos)
 ```
@@ -317,7 +317,7 @@ Proceso B: acquire("chat-123") ✓  ← También adquiere, race condition!
 **Problema**: Los JSON se guardan en texto plano.
 
 ```bash
-cat ~/.miniclaw/sessions/123.json
+cat ~/.rumi/sessions/123.json
 # Muestra todas las conversaciones del usuario
 ```
 
@@ -327,7 +327,7 @@ cat ~/.miniclaw/sessions/123.json
 
 ## Comparación con Otros Enfoques
 
-| Aspecto | MiniClaw | LangChain Memory | ChatGPT |
+| Aspecto | Rumi | LangChain Memory | ChatGPT |
 |---------|----------|------------------|---------|
 | Almacenamiento | JSON files | Pluggable (Redis, etc) | Cloud DB |
 | Compresión | No | ConversationSummaryMemory | Automática |
@@ -458,7 +458,7 @@ async def destroy_session(self, chat_id: str) -> None:
 
 ## Conclusiones
 
-El sistema de memoria de MiniClaw es **pragmático y efectivo** para su caso de uso:
+El sistema de memoria de Rumi es **pragmático y efectivo** para su caso de uso:
 
 1. **Suficiente para un asistente personal**: No necesita escalar a millones de usuarios
 2. **Fácil de debuggear**: JSON plano, sin magia

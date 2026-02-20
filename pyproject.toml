@@ -1,5 +1,5 @@
 [project]
-name = "miniclaw"
+name = "rumi"
 version = "0.1.0"
 description = "Educational personal server assistant with Docker sandboxing"
 requires-python = ">=3.11"
@@ -23,7 +23,7 @@ search = [
 ]
 
 [project.scripts]
-miniclaw = "miniclaw.main:main"
+rumi = "rumi.main:main"
 
 [build-system]
 requires = ["hatchling"]

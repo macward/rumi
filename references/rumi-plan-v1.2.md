@@ -1,4 +1,4 @@
-# MiniClaw --- Plan v1.2 (MVP con Docker Sandbox)
+# Rumi --- Plan v1.2 (MVP con Docker Sandbox)
 
 ## Objetivo
 
@@ -17,13 +17,13 @@ reales de forma segura y aislada mediante Docker.
 
 ## 0.2 Docker Sandbox obligatorio
 
--   1 contenedor por sesión (`miniclaw-runner-{chat_id}`)
+-   1 contenedor por sesión (`rumi-runner-{chat_id}`)
 
 -   Se crea on-demand y se destruye al expirar sesión o con `/reset`
 
 -   Workspace por sesión montado como volumen:
 
-    \~/.miniclaw/workspace/{chat_id} -\> /workspace
+    \~/.rumi/workspace/{chat_id} -\> /workspace
 
 ## 0.3 Flags de seguridad del contenedor
 
@@ -89,7 +89,7 @@ Loop estable + CLI + logs
 
 ## Fase 2 --- Docker Sandbox
 
--   Imagen propia miniclaw-runner
+-   Imagen propia rumi-runner
 -   SandboxManager
 -   bash vía docker exec
 -   workspace por sesión

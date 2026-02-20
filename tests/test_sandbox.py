@@ -5,7 +5,7 @@ from pathlib import Path
 
 import pytest
 
-from miniclaw.sandbox import ExecResult, SandboxConfig, SandboxManager
+from rumi.sandbox import ExecResult, SandboxConfig, SandboxManager
 
 
 @pytest.fixture
@@ -28,7 +28,7 @@ def sandbox(temp_workspace: Path) -> SandboxManager:
 class TestSandboxConfig:
     def test_default_workspace(self):
         config = SandboxConfig()
-        assert config.workspace_base == Path.home() / ".miniclaw" / "workspace"
+        assert config.workspace_base == Path.home() / ".rumi" / "workspace"
 
     def test_custom_workspace(self, temp_workspace: Path):
         config = SandboxConfig(workspace_base=temp_workspace)
@@ -38,7 +38,7 @@ class TestSandboxConfig:
 class TestSandboxManager:
     def test_container_name(self, sandbox: SandboxManager):
         name = sandbox._container_name("test-123")
-        assert name == "miniclaw-runner-test-123"
+        assert name == "rumi-runner-test-123"
 
     def test_workspace_path_created(self, sandbox: SandboxManager, temp_workspace: Path):
         path = sandbox._workspace_path("test-session")

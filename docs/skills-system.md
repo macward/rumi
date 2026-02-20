@@ -27,7 +27,7 @@ The Skills System provides reusable knowledge and orchestration patterns that gu
 │                                                                     │
 │  Discovery Order (priority):                                        │
 │  1. bundled/  (lowest)  → Package skills                           │
-│  2. user/     (medium)  → ~/.miniclaw/skills                       │
+│  2. user/     (medium)  → ~/.rumi/skills                       │
 │  3. workspace (highest) → Project-specific                         │
 └─────────────────────────────────────────────────────────────────────┘
 ```
@@ -88,7 +88,7 @@ my_code_skill/
 
 **skill.py format:**
 ```python
-from miniclaw.skills import CodeSkill, SkillContext, SkillResult
+from rumi.skills import CodeSkill, SkillContext, SkillResult
 
 class MyCodeSkillSkill(CodeSkill):
     """Description of the skill."""
@@ -112,12 +112,12 @@ class MyCodeSkillSkill(CodeSkill):
 
 ## Configuration
 
-Skills configuration is stored in `~/.miniclaw/config.json`:
+Skills configuration is stored in `~/.rumi/config.json`:
 
 ```json
 {
   "skills": {
-    "dirs": ["~/.miniclaw/skills"],
+    "dirs": ["~/.rumi/skills"],
     "disabled": ["skill_to_disable"],
     "max_in_prompt": 20,
     "settings": {
@@ -133,20 +133,20 @@ Skills configuration is stored in `~/.miniclaw/config.json`:
 
 ```bash
 # List available skills
-miniclaw skills list
-miniclaw skills list --all  # Include disabled
+rumi skills list
+rumi skills list --all  # Include disabled
 
 # Enable/disable skills
-miniclaw skills enable <name>
-miniclaw skills disable <name>
+rumi skills enable <name>
+rumi skills disable <name>
 
 # Show skill details
-miniclaw skills info <name>
+rumi skills info <name>
 
 # Create new skill from template
-miniclaw skills create my_skill
-miniclaw skills create my_skill --code  # With skill.py
-miniclaw skills create my_skill -d "My description"
+rumi skills create my_skill
+rumi skills create my_skill --code  # With skill.py
+rumi skills create my_skill -d "My description"
 ```
 
 ## API Usage
@@ -154,12 +154,12 @@ miniclaw skills create my_skill -d "My description"
 ### SkillManager
 
 ```python
-from miniclaw.skills import SkillManager, SkillsConfig
+from rumi.skills import SkillManager, SkillsConfig
 
 # Initialize
 config = SkillsConfig(
     bundled_dir=Path("skills/bundled"),
-    user_dir=Path.home() / ".miniclaw" / "skills",
+    user_dir=Path.home() / ".rumi" / "skills",
     workspace_dir=Path("./skills"),
 )
 manager = SkillManager(config)
@@ -181,7 +181,7 @@ if result.success:
 The `SkillExecutorTool` bridges skills with the ToolRegistry, allowing the LLM to invoke skills:
 
 ```python
-from miniclaw.skills import SkillExecutorTool
+from rumi.skills import SkillExecutorTool
 
 executor = SkillExecutorTool(manager, tools=registry)
 registry.register(executor)
@@ -229,14 +229,14 @@ if not result.success:
 Skills are loaded in order of precedence (lowest to highest):
 
 1. **bundled_dir**: Package-included skills (lowest priority)
-2. **user_dir**: User's personal skills (~/.miniclaw/skills)
+2. **user_dir**: User's personal skills (~/.rumi/skills)
 3. **workspace_dir**: Project-specific skills (highest priority)
 
 If two skills have the same name, the higher priority source wins.
 
 ## Bundled Skills
 
-MiniClaw includes two bundled skills:
+Rumi includes two bundled skills:
 
 ### summarize
 - **Description**: Summarize documents and code

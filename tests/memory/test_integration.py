@@ -5,7 +5,7 @@ from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
 
-from miniclaw.memory import (
+from rumi.memory import (
     Fact,
     FactExtractor,
     ForgetTool,
@@ -13,8 +13,8 @@ from miniclaw.memory import (
     MemoryStore,
     RememberTool,
 )
-from miniclaw.agent.loop import AgentLoop
-from miniclaw.tools import ToolRegistry
+from rumi.agent.loop import AgentLoop
+from rumi.tools import ToolRegistry
 
 
 @pytest.fixture
@@ -119,7 +119,7 @@ class TestMemorySystemIntegration:
         mock_response = Mock()
         mock_response.choices = [Mock()]
         mock_response.choices[0].message.content = (
-            '{"facts": [{"key": "proyecto", "value": "mini-claw"}]}'
+            '{"facts": [{"key": "proyecto", "value": "rumi"}]}'
         )
         mock_client.chat.completions.create = AsyncMock(return_value=mock_response)
 
@@ -137,7 +137,7 @@ class TestMemorySystemIntegration:
 
         # Simulate conversation
         messages = [
-            {"role": "user", "content": "Estoy trabajando en mini-claw"},
+            {"role": "user", "content": "Estoy trabajando en rumi"},
             {"role": "assistant", "content": "Qué interesante!"},
         ]
 
@@ -146,7 +146,7 @@ class TestMemorySystemIntegration:
 
         assert len(facts) == 1
         assert facts[0].key == "proyecto"
-        assert facts[0].value == "mini-claw"
+        assert facts[0].value == "rumi"
 
         # Verify saved to store
         all_facts = store.get_all()

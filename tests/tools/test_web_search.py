@@ -3,7 +3,7 @@
 import pytest
 from unittest.mock import AsyncMock, MagicMock, patch
 
-from miniclaw.tools.web_search import WebSearchTool, reset_client
+from rumi.tools.web_search import WebSearchTool, reset_client
 
 
 @pytest.fixture(autouse=True)
@@ -165,7 +165,7 @@ class TestWebSearchToolExecute:
         monkeypatch.delenv("TAVILY_API_KEY", raising=False)
 
         # Mock the import to avoid actual dependency check
-        with patch("miniclaw.tools.web_search._get_client") as mock_get:
+        with patch("rumi.tools.web_search._get_client") as mock_get:
             mock_get.side_effect = ValueError("TAVILY_API_KEY environment variable is required")
 
             tool = WebSearchTool()
@@ -193,7 +193,7 @@ class TestWebSearchToolExecute:
         mock_client = AsyncMock()
         mock_client.search = AsyncMock(return_value=mock_response)
 
-        with patch("miniclaw.tools.web_search._get_client", return_value=mock_client):
+        with patch("rumi.tools.web_search._get_client", return_value=mock_client):
             tool = WebSearchTool()
             result = await tool.execute(query="test query")
 
@@ -210,7 +210,7 @@ class TestWebSearchToolExecute:
         mock_client = AsyncMock()
         mock_client.search = AsyncMock(return_value={"results": []})
 
-        with patch("miniclaw.tools.web_search._get_client", return_value=mock_client):
+        with patch("rumi.tools.web_search._get_client", return_value=mock_client):
             tool = WebSearchTool()
             await tool.execute(query="test", max_results=10)
 
@@ -226,7 +226,7 @@ class TestWebSearchToolExecute:
         mock_client = AsyncMock()
         mock_client.search = AsyncMock(return_value={"results": []})
 
-        with patch("miniclaw.tools.web_search._get_client", return_value=mock_client):
+        with patch("rumi.tools.web_search._get_client", return_value=mock_client):
             tool = WebSearchTool()
             await tool.execute(query="test", max_results="7")
 
@@ -240,7 +240,7 @@ class TestWebSearchToolExecute:
         mock_client = AsyncMock()
         mock_client.search = AsyncMock(return_value={"results": []})
 
-        with patch("miniclaw.tools.web_search._get_client", return_value=mock_client):
+        with patch("rumi.tools.web_search._get_client", return_value=mock_client):
             tool = WebSearchTool()
             await tool.execute(query="stock prices", topic="finance")
 
@@ -254,7 +254,7 @@ class TestWebSearchToolExecute:
         mock_client = AsyncMock()
         mock_client.search = AsyncMock(return_value={"results": []})
 
-        with patch("miniclaw.tools.web_search._get_client", return_value=mock_client):
+        with patch("rumi.tools.web_search._get_client", return_value=mock_client):
             tool = WebSearchTool()
             await tool.execute(query="test", topic="invalid")
 
@@ -268,7 +268,7 @@ class TestWebSearchToolExecute:
         mock_client = AsyncMock()
         mock_client.search = AsyncMock(side_effect=Exception("API error"))
 
-        with patch("miniclaw.tools.web_search._get_client", return_value=mock_client):
+        with patch("rumi.tools.web_search._get_client", return_value=mock_client):
             tool = WebSearchTool()
             result = await tool.execute(query="test")
 
@@ -304,7 +304,7 @@ class TestWebSearchToolIntegration:
         mock_client = AsyncMock()
         mock_client.search = AsyncMock(return_value=mock_response)
 
-        with patch("miniclaw.tools.web_search._get_client", return_value=mock_client):
+        with patch("rumi.tools.web_search._get_client", return_value=mock_client):
             tool = WebSearchTool(include_answer=True)
             result = await tool.execute(
                 query="clima Madrid jueves",

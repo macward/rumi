@@ -5,7 +5,7 @@ import pytest
 from pathlib import Path
 from unittest.mock import MagicMock
 
-from miniclaw.skills import (
+from rumi.skills import (
     SkillsConfig,
     SkillManager,
     SkillContext,
@@ -23,7 +23,7 @@ class TestSkillsConfig:
 
         assert config.bundled_dir is not None
         assert "bundled" in str(config.bundled_dir)
-        assert config.user_dir == Path.home() / ".miniclaw" / "skills"
+        assert config.user_dir == Path.home() / ".rumi" / "skills"
         assert config.max_skills_in_prompt == 20
         assert config.disabled_skills == []
         assert config.skill_settings == {}
@@ -286,7 +286,7 @@ class TestSkillManagerWithSettings:
         )
         (skill_dir / "skill.py").write_text(
             '''
-from miniclaw.skills import CodeSkill, SkillContext, SkillResult
+from rumi.skills import CodeSkill, SkillContext, SkillResult
 
 class SettingsTestSkill(CodeSkill):
     async def execute(self, ctx: SkillContext) -> SkillResult:

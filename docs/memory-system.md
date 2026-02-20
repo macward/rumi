@@ -1,8 +1,8 @@
-# Sistema de Memoria de MiniClaw
+# Sistema de Memoria de Rumi
 
 ## Descripción General
 
-MiniClaw implementa un sistema de memoria de dos capas:
+Rumi implementa un sistema de memoria de dos capas:
 
 1. **Session Memory** (temporal): Historial de conversación y contexto por chat
 2. **Facts Memory** (persistente): Hechos estables sobre el usuario que sobreviven entre sesiones
@@ -35,7 +35,7 @@ El sistema de Facts almacena información estable sobre el usuario que se mantie
 │           │                                                          │
 │           ▼                                                          │
 │  ┌───────────────────────────────────────────────────────────────┐  │
-│  │              ~/.miniclaw/memory.db (SQLite)                    │  │
+│  │              ~/.rumi/memory.db (SQLite)                    │  │
 │  └───────────────────────────────────────────────────────────────┘  │
 └─────────────────────────────────────────────────────────────────────┘
 ```
@@ -73,7 +73,7 @@ CREATE TABLE facts (
 
 **Operaciones:**
 ```python
-store = MemoryStore(Path("~/.miniclaw/memory.db"))
+store = MemoryStore(Path("~/.rumi/memory.db"))
 store.init_db()
 
 # Guardar (upsert por key+value)
@@ -99,7 +99,7 @@ extractor = FactExtractor(
 )
 
 facts = await extractor.extract(messages)
-# → [Fact(key="proyecto", value="está trabajando en MiniClaw"), ...]
+# → [Fact(key="proyecto", value="está trabajando en Rumi"), ...]
 ```
 
 **Criterios de extracción:**
@@ -169,7 +169,7 @@ async def on_session_end(self, chat_id: str):
 
 # Parte 2: Session Memory (Memoria de Sesión)
 
-MiniClaw implementa un sistema de memoria basado en **sesiones persistentes** que mantiene el estado de cada conversación (chat) entre interacciones. El sistema está implementado en `SessionManager` y almacena:
+Rumi implementa un sistema de memoria basado en **sesiones persistentes** que mantiene el estado de cada conversación (chat) entre interacciones. El sistema está implementado en `SessionManager` y almacena:
 
 - Historial de mensajes
 - Contexto key-value arbitrario
@@ -192,7 +192,7 @@ MiniClaw implementa un sistema de memoria basado en **sesiones persistentes** qu
 │  │          │                  │                  │         │ │
 │  │          ▼                  ▼                  ▼         │ │
 │  │   ┌─────────────────────────────────────────────────────┐│ │
-│  │   │              ~/.miniclaw/sessions/                  ││ │
+│  │   │              ~/.rumi/sessions/                  ││ │
 │  │   │   chat_123.json   chat_456.json   chat_789.json    ││ │
 │  │   └─────────────────────────────────────────────────────┘│ │
 │  └───────────────────────────────────────────────────────────┘ │
@@ -223,7 +223,7 @@ Configuración del sistema:
 ```python
 @dataclass
 class SessionConfig:
-    sessions_dir: Path      # ~/.miniclaw/sessions/
+    sessions_dir: Path      # ~/.rumi/sessions/
     ttl_seconds: float      # 3600 (1 hora)
     cleanup_interval: float # 300 (5 minutos)
 ```
@@ -232,7 +232,7 @@ class SessionConfig:
 
 ### Ubicación
 ```
-~/.miniclaw/sessions/{chat_id}.json
+~/.rumi/sessions/{chat_id}.json
 ```
 
 ### Formato del archivo
@@ -430,7 +430,7 @@ class SessionState:
 - Historial de comandos frecuentes
 
 ```
-~/.miniclaw/
+~/.rumi/
 ├── sessions/         # Sesiones temporales
 │   └── chat_123.json
 └── profiles/         # Perfiles persistentes

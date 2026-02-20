@@ -39,7 +39,7 @@ ENV/
 Thumbs.db
 
 # Project specific
-.miniclaw/
+.rumi/
 logs/
 *.jsonl
 

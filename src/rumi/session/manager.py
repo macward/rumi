@@ -49,7 +49,7 @@ class SessionConfig:
 
     def __post_init__(self) -> None:
         if self.sessions_dir is None:
-            self.sessions_dir = Path.home() / ".miniclaw" / "sessions"
+            self.sessions_dir = Path.home() / ".rumi" / "sessions"
 
 
 class SessionManager:

@@ -179,7 +179,7 @@ Describe when this skill should be invoked.
 
 CODE_SKILL_TEMPLATE = '''"""CodeSkill implementation for {name}."""
 
-from miniclaw.skills import CodeSkill, SkillContext, SkillResult
+from rumi.skills import CodeSkill, SkillContext, SkillResult
 
 
 class {class_name}(CodeSkill):
@@ -244,7 +244,7 @@ def cmd_create(args: argparse.Namespace) -> int:
 
     # Determine target directory
     config = load_config()
-    user_dir = config.user_dir or (Path.home() / ".miniclaw" / "skills")
+    user_dir = config.user_dir or (Path.home() / ".rumi" / "skills")
     skill_dir = user_dir / name
 
     # Check if already exists
@@ -294,7 +294,7 @@ def cmd_create(args: argparse.Namespace) -> int:
     print(f"  1. Edit {skill_dir / 'SKILL.md'} to customize instructions")
     if args.code:
         print(f"  2. Implement your skill logic in {skill_dir / 'skill.py'}")
-    print(f"  3. Run 'miniclaw skills list' to verify the skill is discovered")
+    print(f"  3. Run 'rumi skills list' to verify the skill is discovered")
 
     return 0
 
@@ -302,8 +302,8 @@ def cmd_create(args: argparse.Namespace) -> int:
 def create_parser() -> argparse.ArgumentParser:
     """Create the argument parser for skills CLI."""
     parser = argparse.ArgumentParser(
-        prog="miniclaw skills",
-        description="Manage MiniClaw skills",
+        prog="rumi skills",
+        description="Manage Rumi skills",
     )
 
     subparsers = parser.add_subparsers(dest="command", help="Sub-command help")

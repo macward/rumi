@@ -39,6 +39,20 @@ class ToolRegistry:
         tool = self._tools.get(tool_name)
 
         if tool is None:
+            # Check if this is a skill name that should be redirected to use_skill
+            use_skill_tool = self._tools.get("use_skill")
+            if use_skill_tool is not None:
+                # Check if it has a skill_manager with this skill
+                skill_manager = getattr(use_skill_tool, "skill_manager", None)
+                if skill_manager and skill_manager.is_skill_available(tool_name):
+                    # Redirect to use_skill with the skill name
+                    # Extract skill_input from args (could be 'message', 'input', etc.)
+                    skill_input = args.get("skill_input") or args.get("message") or args.get("input") or ""
+                    return await use_skill_tool.execute(
+                        skill_name=tool_name,
+                        skill_input=skill_input,
+                    )
+
             return ToolResult(
                 success=False,
                 output="",

@@ -1,6 +1,6 @@
-# MiniClaw - Research & Learnings
+# Rumi - Research & Learnings
 
-Este documento resume los tópicos técnicos y lecciones aprendidas durante el desarrollo de MiniClaw.
+Este documento resume los tópicos técnicos y lecciones aprendidas durante el desarrollo de Rumi.
 
 ---
 
@@ -15,7 +15,7 @@ Este documento resume los tópicos técnicos y lecciones aprendidas durante el d
 ```python
 # Crear contenedor de larga duración
 container = client.containers.run(
-    image="miniclaw-runner:latest",
+    image="rumi-runner:latest",
     detach=True,
     command=["sleep", "infinity"]
 )

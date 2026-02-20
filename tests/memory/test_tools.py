@@ -4,7 +4,7 @@ from pathlib import Path
 
 import pytest
 
-from miniclaw.memory import Fact, ForgetTool, MemoryStore, RememberTool
+from rumi.memory import Fact, ForgetTool, MemoryStore, RememberTool
 
 
 @pytest.fixture
@@ -188,12 +188,12 @@ class TestToolExports:
 
     def test_remember_exported(self):
         """RememberTool is exported from memory package."""
-        from miniclaw.memory import RememberTool as Exported
+        from rumi.memory import RememberTool as Exported
 
         assert Exported is RememberTool
 
     def test_forget_exported(self):
         """ForgetTool is exported from memory package."""
-        from miniclaw.memory import ForgetTool as Exported
+        from rumi.memory import ForgetTool as Exported
 
         assert Exported is ForgetTool

@@ -1,4 +1,4 @@
-# MiniClaw Architecture
+# Rumi Architecture
 
 ## System Overview
 
@@ -61,7 +61,7 @@
 │  ┌───────────────────────────────────────────────────────────────┐ │
 │  │             SandboxManager (sandbox/manager.py)               │ │
 │  │                                                               │ │
-│  │  Container: miniclaw-runner-{chat_id}                        │ │
+│  │  Container: rumi-runner-{chat_id}                        │ │
 │  │  - read_only=True                                            │ │
 │  │  - cap_drop=["ALL"]                                          │ │
 │  │  - network_mode="none"                                       │ │
@@ -69,7 +69,7 @@
 │  │  - mem_limit=512m, cpus=1                                    │ │
 │  │                                                               │ │
 │  │  Mounts:                                                     │ │
-│  │  - ~/.miniclaw/workspace/{chat_id} → /workspace (rw)         │ │
+│  │  - ~/.rumi/workspace/{chat_id} → /workspace (rw)         │ │
 │  │  - tmpfs → /tmp (64MB)                                       │ │
 │  └───────────────────────────────────────────────────────────────┘ │
 └─────────────────────────────────────────────────────────────────────┘
@@ -78,7 +78,7 @@
 ┌─────────────────────────────────────────────────────────────────────┐
 │                    DOCKER CONTAINER                                 │
 │  ┌───────────────────────────────────────────────────────────────┐ │
-│  │              miniclaw-runner:latest (Alpine 3.19)             │ │
+│  │              rumi-runner:latest (Alpine 3.19)             │ │
 │  │                                                               │ │
 │  │  Installed: bash, coreutils, findutils, grep, sed, gawk      │ │
 │  │  Removed:   wget, curl, nc (no network tools)                │ │
@@ -138,14 +138,14 @@ User: "list files"
                     TRUSTED                           UNTRUSTED
            ┌──────────────────────────────┬──────────────────────────┐
            │                              │                          │
-HOST       │  MiniClaw Python Process     │                          │
+HOST       │  Rumi Python Process     │                          │
            │  - AgentLoop                 │                          │
            │  - WebFetchTool              │                          │
            │  - SandboxManager            │                          │
            │                              │                          │
            ├──────────────────────────────┼──────────────────────────┤
            │                              │                          │
-DOCKER     │                              │  miniclaw-runner         │
+DOCKER     │                              │  rumi-runner         │
            │                              │  - User commands         │
            │                              │  - No network            │
            │                              │  - Read-only rootfs      │
@@ -193,9 +193,9 @@ Security Controls:
 │  └──────────────────┘ └──────────────────┘ └──────────────────┘    │
 │                                                                     │
 │  Directories (precedence: workspace > user > bundled):             │
-│  ├── bundled:   src/miniclaw/skills/bundled/                       │
-│  ├── user:      ~/.miniclaw/skills/                                │
-│  └── workspace: <project>/.miniclaw/skills/                        │
+│  ├── bundled:   src/rumi/skills/bundled/                       │
+│  ├── user:      ~/.rumi/skills/                                │
+│  └── workspace: <project>/.rumi/skills/                        │
 └─────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -221,7 +221,7 @@ Security Controls:
 │           │                                                          │
 │           ▼                                                          │
 │  ┌──────────────────────────────────────────────────────────────┐   │
-│  │        ~/.miniclaw/memory.db (persistent facts)               │   │
+│  │        ~/.rumi/memory.db (persistent facts)               │   │
 │  └──────────────────────────────────────────────────────────────┘   │
 │                                                                      │
 │  Data Flow:                                                          │
@@ -234,7 +234,7 @@ Security Controls:
 ## File Layout
 
 ```
-src/miniclaw/
+src/rumi/
 ├── __init__.py
 ├── main.py              # Entry point
 ├── cli.py               # CLI interface
@@ -259,7 +259,7 @@ src/miniclaw/
 ├── skills/
 │   ├── __init__.py
 │   ├── base.py          # Skill, SkillMetadata, SkillContext
-│   ├── cli.py           # miniclaw skills subcommands
+│   ├── cli.py           # rumi skills subcommands
 │   ├── code_skill.py    # CodeSkill loader
 │   ├── config.py        # SkillsConfig, load/save
 │   ├── executor_tool.py # SkillExecutorTool (use_skill)

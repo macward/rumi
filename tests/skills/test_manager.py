@@ -5,8 +5,8 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from miniclaw.skills.base import SkillContext, SkillSource
-from miniclaw.skills.manager import SkillManager, SkillsConfig
+from rumi.skills.base import SkillContext, SkillSource
+from rumi.skills.manager import SkillManager, SkillsConfig
 
 
 def create_skill_dir(base: Path, name: str, description: str, **kwargs) -> Path:
@@ -43,7 +43,7 @@ class TestSkillsConfig:
 
         assert config.bundled_dir is not None
         assert "bundled" in str(config.bundled_dir)
-        assert config.user_dir == Path.home() / ".miniclaw" / "skills"
+        assert config.user_dir == Path.home() / ".rumi" / "skills"
         assert config.max_skills_in_prompt == 20
         assert config.disabled_skills == []
 

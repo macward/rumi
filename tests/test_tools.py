@@ -2,7 +2,7 @@
 
 import pytest
 
-from miniclaw.tools import Tool, ToolResult, ToolRegistry
+from rumi.tools import Tool, ToolResult, ToolRegistry
 
 
 class EchoTool(Tool):

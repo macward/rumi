@@ -1,6 +1,6 @@
 """Tests for prompt builder."""
 
-from miniclaw.agent.prompt import build_system_prompt
+from rumi.agent.prompt import build_system_prompt
 
 
 class TestBuildSystemPrompt:
