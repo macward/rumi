@@ -17,8 +17,10 @@ Input (CLI/Telegram) → Agent Loop → ToolRegistry → SandboxManager → Dock
 ### Core Components
 - **Agent Loop**: think → act → observe cycle with circuit breakers
 - **SandboxManager**: Creates/destroys Docker containers per session (`rumi-runner-{chat_id}`)
-- **ToolRegistry**: Manages available tools (bash, web_fetch)
+- **ToolRegistry**: Manages available tools (bash, web_fetch, web_search)
 - **SessionManager**: Handles per-session state and locks
+- **MemoryManager**: Persistent facts storage (SQLite)
+- **SkillManager**: Reusable skill strategies
 
 ### Execution Model
 - One active execution per `chat_id` (session lock)
@@ -49,6 +51,31 @@ Per-session volume mount: `~/.rumi/workspace/{chat_id}` → `/workspace`
 - SSRF blocking: loopback, private IPs, link-local
 - Byte limit and timeout
 
+### web_search
+- Uses Tavily API (requires TAVILY_API_KEY)
+- Returns clean results optimized for AI agents
+- Modes: basic (fast) and advanced (deep)
+
+## Skills System
+
+Reusable strategies for complex tasks. Types:
+- **PromptSkill**: SKILL.md only (instructions for LLM)
+- **CodeSkill**: SKILL.md + skill.py (Python orchestration)
+
+Discovery order (priority): bundled/ < ~/.rumi/skills/ < ./skills/
+
+CLI: `rumi skills list|info|enable|disable|create`
+
+## Memory System
+
+Two-layer memory:
+- **Session Memory**: Conversation history per chat (temporary, TTL-based)
+- **Facts Memory**: Stable user facts in SQLite (~/.rumi/memory.db)
+
+Tools: `remember(key, value)`, `forget(key)`
+
+Facts are injected into system prompt as `<memory>` block.
+
 ## Circuit Breakers
 
 Loop stops when:
@@ -62,11 +89,14 @@ JSONL logs with: `container_id`, `argv`, duration, `exit_code`, `truncated`, `st
 
 ## Development Phases
 
-1. **Core + Parser** - Stable loop, CLI, logs
-2. **Docker Sandbox** - rumi-runner image, SandboxManager, bash via docker exec
-3. **web_fetch seguro** - SSRF-protected fetch
-4. **Sessions persistentes** - Persistent session storage
-5. **Telegram** - Bot integration with /stop, /reset commands
+1. ✅ **Core + Parser** - Stable loop, CLI, logs
+2. ✅ **Docker Sandbox** - rumi-runner image, SandboxManager, bash via docker exec
+3. ✅ **web_fetch seguro** - SSRF-protected fetch
+4. ✅ **Sessions persistentes** - Persistent session storage
+5. ✅ **Telegram** - Bot integration with /stop, /reset commands
+6. ✅ **Memory System** - Persistent facts, auto-extraction
+7. ✅ **Skills System** - PromptSkill, CodeSkill, CLI
+8. ✅ **web_search** - Tavily API integration
 
 ## Key Design Decisions
 

@@ -6,7 +6,9 @@ Asistente personal de servidor con fines educativos que ejecuta herramientas rea
 
 - **Agente IA**: Ciclo think → act → observe con Groq API (Llama 3.1)
 - **Docker Sandbox**: Contenedores aislados sin red, read-only, recursos limitados
-- **Herramientas seguras**: bash (allowlist), web_fetch (SSRF protection)
+- **Herramientas seguras**: bash (allowlist), web_fetch (SSRF protection), web_search (Tavily)
+- **Sistema de Skills**: Estrategias reutilizables para tareas complejas
+- **Memoria persistente**: Facts que sobreviven entre sesiones
 - **Interfaces**: CLI interactivo y bot de Telegram
 - **Observabilidad**: Logs JSONL estructurados
 - **Sesiones**: Persistencia, locks de concurrencia, TTL configurable
@@ -61,6 +63,9 @@ GROQ_API_KEY=tu_api_key_de_groq
 
 # Opcional (solo para Telegram)
 TELEGRAM_TOKEN=tu_token_de_telegram
+
+# Opcional: Búsqueda web (Tavily)
+TAVILY_API_KEY=tu_api_key_de_tavily
 
 # Opcional: Configuración
 GROQ_MODEL=llama-3.1-70b-versatile
@@ -121,8 +126,11 @@ Input (CLI/Telegram) → Agent Loop → ToolRegistry → SandboxManager → Dock
 | `ToolRegistry` | Registro y dispatch de herramientas |
 | `SandboxManager` | Gestión de contenedores Docker |
 | `SessionManager` | Estado, locks y persistencia por sesión |
+| `MemoryManager` | Memoria persistente de facts sobre el usuario |
+| `SkillManager` | Sistema de skills reutilizables |
 | `BashTool` | Ejecución segura de comandos bash |
 | `WebFetchTool` | Fetch HTTP con protección SSRF |
+| `WebSearchTool` | Búsqueda web con Tavily API |
 | `JSONLLogger` | Logs estructurados para observabilidad |
 
 ### Seguridad del Sandbox
@@ -173,6 +181,16 @@ Obtiene contenido de URLs públicas. Protecciones SSRF:
 - Límite de bytes (1MB)
 - Timeout configurable
 
+#### web_search
+
+Búsqueda web usando [Tavily API](https://tavily.com/), optimizada para agentes IA:
+
+- Requiere `TAVILY_API_KEY` en `.env`
+- Retorna resultados limpios (no HTML crudo)
+- Incluye respuesta resumida opcional
+- Modos: `basic` (rápido) y `advanced` (profundo)
+- Filtros por dominio y tópico
+
 ## Estructura del Proyecto
 
 ```
@@ -185,7 +203,19 @@ rumi/
 │   │   ├── base.py      # Interfaz Tool, ToolResult
 │   │   ├── registry.py  # ToolRegistry
 │   │   ├── bash.py      # BashTool
-│   │   └── web_fetch.py # WebFetchTool
+│   │   ├── web_fetch.py # WebFetchTool
+│   │   └── web_search.py # WebSearchTool (Tavily)
+│   ├── memory/          # Sistema de memoria persistente
+│   │   ├── store.py     # MemoryStore (SQLite)
+│   │   ├── extractor.py # FactExtractor (LLM)
+│   │   ├── manager.py   # MemoryManager
+│   │   └── tools.py     # RememberTool, ForgetTool
+│   ├── skills/          # Sistema de skills
+│   │   ├── manager.py   # SkillManager
+│   │   ├── base.py      # Skill base classes
+│   │   ├── parser.py    # SKILL.md parser
+│   │   ├── cli.py       # CLI: rumi skills ...
+│   │   └── bundled/     # Skills incluidos
 │   ├── sandbox/         # Docker sandbox
 │   │   └── manager.py   # SandboxManager
 │   ├── session/         # Gestión de sesiones
@@ -210,6 +240,7 @@ rumi/
 |----------|---------|-------------|
 | `GROQ_API_KEY` | (requerido) | API key de Groq |
 | `TELEGRAM_TOKEN` | (opcional) | Token del bot de Telegram |
+| `TAVILY_API_KEY` | (opcional) | API key de Tavily para web_search |
 | `GROQ_MODEL` | `llama-3.1-70b-versatile` | Modelo a usar |
 | `SANDBOX_TIMEOUT` | `30` | Timeout de comandos (segundos) |
 | `SANDBOX_MEMORY` | `512m` | Límite de memoria del contenedor |
@@ -221,9 +252,12 @@ Rumi crea los siguientes directorios en `~/.rumi/`:
 
 ```
 ~/.rumi/
-├── workspace/{chat_id}/  # Workspace por sesión (montado en /workspace)
+├── workspace/{chat_id}/     # Workspace por sesión (montado en /workspace)
 ├── sessions/{chat_id}.json  # Estado persistido de sesiones
-└── logs/logs.jsonl       # Logs estructurados
+├── skills/                  # Skills del usuario
+├── memory.db                # Base de datos SQLite de facts
+├── config.json              # Configuración de skills
+└── logs/logs.jsonl          # Logs estructurados
 ```
 
 ### Ciclo de Vida de Contenedores
@@ -240,6 +274,59 @@ El agente se detiene automáticamente si:
 - Mismo tool_call repetido 2 veces consecutivas
 - 3 errores consecutivos
 - Alcanza max_turns (default: 10)
+
+## Sistema de Skills
+
+Skills son estrategias reutilizables que guían al agente en tareas complejas. A diferencia de Tools (capacidades atómicas), Skills representan flujos de trabajo.
+
+### Tipos de Skills
+
+- **PromptSkill**: Solo `SKILL.md` con instrucciones
+- **CodeSkill**: `SKILL.md` + `skill.py` con lógica Python
+
+### Comandos CLI
+
+```bash
+rumi skills list              # Listar skills disponibles
+rumi skills info <name>       # Ver detalles de un skill
+rumi skills enable <name>     # Habilitar skill
+rumi skills disable <name>    # Deshabilitar skill
+rumi skills create <name>     # Crear skill desde template
+```
+
+### Directorios de Skills
+
+Por orden de prioridad:
+1. `bundled/` - Skills incluidos en el paquete
+2. `~/.rumi/skills/` - Skills del usuario
+3. `./skills/` - Skills del proyecto (mayor prioridad)
+
+Ver [docs/skills-system.md](docs/skills-system.md) para documentación completa.
+
+## Sistema de Memoria
+
+Rumi implementa memoria de dos capas:
+
+### Session Memory (temporal)
+- Historial de conversación por chat
+- Contexto key-value
+- Expira después de 1 hora de inactividad
+
+### Facts Memory (persistente)
+- Hechos estables sobre el usuario
+- Almacenados en SQLite (`~/.rumi/memory.db`)
+- Sobreviven entre sesiones
+
+### Herramientas de Memoria
+
+```
+remember(key="nombre", value="se llama Juan")  # Guardar fact
+forget(key="trabajo")                           # Olvidar facts
+```
+
+Los facts se inyectan automáticamente en el prompt del agente.
+
+Ver [docs/memory-system.md](docs/memory-system.md) para documentación completa.
 
 ## Desarrollo
 
